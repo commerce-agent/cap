@@ -11,6 +11,12 @@ site_dir: site
 nav:
   - Home: index.md
   - Specification: specification.md
+  - Topics:
+    - "Why AICP Leverages A2A": topics/why-a2a.md
+    - "Handling Multiple Services": topics/handling-multi-services.md
+    - "Discovery Rationale": topics/discovery-rationale.md
+    - "Product ID Discovery Rationale": topics/product-id-discovery-rationale.md
+    - "SkillId in Metadata Rationale": topics/skillid-metadata-rationale.md
 
 # Repository (Optional - uncomment and fill in if you have one)
 # repo_name: your-username/aicp

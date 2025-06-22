@@ -259,7 +259,7 @@ This shows a `Task` object that might be returned by `message/send` or `tasks/ge
           {
             "kind": "data",
             "data": {
-              "products": [
+    "products": [
                 { "id": "urn:Product:sku:123", "name": "AICP Runner Pro - Blue", "price": 79.99, "currency": "USD" },
                 { "id": "urn:Product:sku:124", "name": "AICP Distance Master - Blue", "price": 99.99, "currency": "USD" }
               ],
