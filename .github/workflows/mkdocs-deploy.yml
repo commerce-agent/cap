@@ -48,3 +48,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4 
+
+      - name: Azure Blob Storage Upload
+        uses: bacongobbler/azure-blob-storage-upload@v3.0.0
+        with:
+          source_dir: ./site
+          container_name: "$web"
+          account_name: retailaicp
+          sas_token: "${{ secrets.AZURE_STORAGE_SAS_TOKEN }}"
