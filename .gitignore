@@ -3,3 +3,4 @@ a2a/
 site/
 .venv/
 .DS_Store
+tmp/
