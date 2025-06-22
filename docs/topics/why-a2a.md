@@ -39,8 +39,8 @@ We acknowledge that adopting any new protocol, including A2A, introduces an init
     -   For many common AICP Skills that involve request/reply interactions (e.g., fetching product details, simple searches, or initial cart operations), it is indeed feasible for Merchant Agents to implement their A2A service endpoint by creating relatively straightforward **wrappers or shims over their existing internal or public REST APIs.**
     -   The core logic for such a wrapper would typically involve:
         -   Receiving an A2A task request (e.g., via the A2A `message/send` method).
-        -   Extracting the AICP `skillId` and parameters from the A2A `Message` object (specifically, from the `DataPart` within `Message.parts` and `skillId` from `Message.metadata` as per AICP conventions).
-        -   Translating these into one or more calls to their internal REST API endpoints.
+        -   Recognizing a **Direct Skill Invocation**, where the AICP `skillId` is explicitly provided in the `DataPart.metadata` and structured parameters are in `DataPart.data` (as per AICP Spec Section 4.2.1). This allows for direct routing similar to a traditional API request/reply, bypassing the need for potentially complex and costly natural language understanding (NLU) to determine intent for these calls.
+        -   Translating these structured inputs into one or more calls to their internal REST API endpoints.
         -   Transforming the REST API response back into the A2A `Task` structure, with results placed in an A2A `Artifact` containing a `DataPart`.
     -   This "wrapper" approach allows merchants to leverage their existing, mature API infrastructure for the core business logic, while the A2A layer handles standardized agent communication, task management, and discovery. Common libraries and examples provided by the A2A project can further simplify the A2A server-side setup.
 
