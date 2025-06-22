@@ -1,0 +1,198 @@
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansBold.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansBold.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansBold.otf") format("opentype");
+font-style:normal;font-weight:700;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansBoldIta.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansBoldIta.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansBoldIta.otf") format("opentype");
+font-style:italic;font-weight:700;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansItalic.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansItalic.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansItalic.otf") format("opentype");
+font-style:italic;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansLight.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansLight.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansLight.otf") format("opentype");
+font-style:normal;font-weight:300;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansLightItalic.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansLightItalic.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansLightItalic.otf") format("opentype");
+font-style:italic;font-weight:300;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansRegular.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansRegular.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansRegular.otf") format("opentype");
+font-style:normal;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansThin.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansThin.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansThin.otf") format("opentype");
+font-style:normal;font-weight:200;
+}
+
+@font-face {
+font-family:"henderson-bcg-sans";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSansThinItalic.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansThinItalic.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSansThinItalic.otf") format("opentype");
+font-style:italic;font-weight:200;
+}
+
+@font-face {
+font-family:"henderson-bcg-serif";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSerifBold.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifBold.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifBold.otf") format("opentype");
+font-style:normal;font-weight:700;
+}
+
+@font-face {
+font-family:"henderson-bcg-serif";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSerifBoldIta.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifBoldIta.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifBoldIta.otf") format("opentype");
+font-style:italic;font-weight:700;
+}
+
+@font-face {
+font-family:"henderson-bcg-serif";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSerifItalic.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifItalic.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifItalic.otf") format("opentype");
+font-style:italic;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-serif";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSerifRegular.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifRegular.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifRegular.otf") format("opentype");
+font-style:normal;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-headline";
+src:url("//fonts.bcg.com/k/fullset/BCGHenSerifHead.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifHead.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenSerifHead.otf") format("opentype");
+font-style:normal;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-mod";
+src:url("//fonts.bcg.com/k/fullset/BCGHenModExtraBold.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenModExtraBold.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenModExtraBold.otf") format("opentype");
+font-style:normal;font-weight:900;
+}
+
+@font-face {
+font-family:"henderson-bcg-mod";
+src:url("//fonts.bcg.com/k/fullset/BCGHenModNormal800.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenModNormal800.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenModNormal800.otf") format("opentype");
+font-style:normal;font-weight:800;
+}
+
+@font-face {
+font-family:"henderson-bcg-mod";
+src:url("//fonts.bcg.com/k/fullset/BCGHenModBold.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenModBold.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenModBold.otf") format("opentype");
+font-style:normal;font-weight:700;
+}
+
+@font-face {
+font-family:"henderson-bcg-mod";
+src:url("//fonts.bcg.com/k/fullset/BCGHenModItalic.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenModItalic.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenModItalic.otf") format("opentype");
+font-style:normal;font-weight:400;
+}
+
+@font-face {
+font-family:"henderson-bcg-mod";
+src:url("//fonts.bcg.com/k/fullset/BCGHenModRegular.woff2") format("woff2"),
+url("//fonts.bcg.com/k/fullset/BCGHenModRegular.woff") format("woff"),
+url("//fonts.bcg.com/k/fullset/BCGHenModRegular.otf") format("opentype");
+font-style:normal;font-weight:400;
+}
+
+:root {
+  --md-primary-fg-color:        #147B58; /* BCG Green */
+  --md-primary-fg-color--light: #1AA473; /* Lighter shade of BCG Green */
+  --md-primary-fg-color--dark:  #0F5A40; /* Darker shade of BCG Green */
+
+  --md-accent-fg-color:         #147B58; /* BCG Green for accents */
+}
+
+.md-grid {
+  max-width: 80%;
+}
+.footer {
+  padding-bottom: 30vh;
+}
+.centered-logo-text-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5em;
+  margin-bottom: 0.5em;
+  vertical-align: middle;
+}
+.centered-logo-text-group img {
+  height: auto;
+}
+.centered-logo-text-group h1 {
+  margin: 0;
+  text-align: left;
+}
+.install-command-container {
+  max-width: 600px;
+  margin: 2.5em auto;
+  padding: 1.5em 2em;
+  background-color: var(--md-code-bg-color, #f5f5f5);
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid var(--md-primary-fg-color, #526cfe);
+  margin-top: 30px;
+}
+.install-command-container p {
+  font-size: 1.1em;
+  color: var(--md-default-fg-color);
+  margin-bottom: -10px;
+  margin-top: -10px;
+}
+.install-command-container p code {
+  font-size: 1.1em;
+  font-weight: 600;
+  padding: 0.3em 0.6em;
+  background-color: var(--md-code-fg-color--light);
+  border-radius: 4px;
+  display: inline-block;
+  line-height: 1.4;
+}

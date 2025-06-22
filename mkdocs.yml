@@ -1,0 +1,106 @@
+# Project information
+site_name: AI Commerce Protocol (AICP)
+site_url: "" # Placeholder - Fill in with your GitHub Pages URL later
+site_description: >-
+  Specification for the AI Commerce Protocol,
+  enabling standardized e-commerce capabilities for AI agents.
+site_author: Cloves Almeida, Boston Consulting Group
+site_dir: site
+
+# Navigation
+nav:
+  - Home: index.md
+  - Specification: specification.md
+
+# Repository (Optional - uncomment and fill in if you have one)
+# repo_name: your-username/aicp
+# repo_url: https://github.com/your-username/aicp
+
+# Copyright (Optional - uncomment and fill in)
+# copyright: Copyright Cloves Almeida 2024
+
+# Custom CSS (Points to docs/stylesheets/custom.css)
+extra_css:
+  - stylesheets/custom.css
+
+# Theme Configuration
+theme:
+  name: material
+  font:
+    text: henderson-bcg-sans
+  logo: assets/logo.png
+  favicon: assets/logo.png
+
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: custom # Base color, will be overridden by custom.css
+      accent: custom  # Base color, will be overridden by custom.css
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: custom # Base color for dark mode, can be overridden
+      accent: custom  # Base color for dark mode, can be overridden
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - content.code.annotate
+    - content.code.copy
+    # - content.code.select # Material for MkDocs Insiders
+    # - content.tabs.link # Material for MkDocs Insiders
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.tabs
+    # - navigation.tabs.sticky # Material for MkDocs Insiders
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    # - toc.integrate # Material for MkDocs Insiders
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - toc:
+      permalink: true
+      toc_depth: 4 # Adjust table of contents depth as needed
+
+# Plugins
+plugins:
+  - search
+  # - redirects: # Uncomment and configure if you need redirects later
+  #     redirect_maps:
+  #       old-page.md: new-page.md 
