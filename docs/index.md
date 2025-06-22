@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Welcome to the AI Commerce Protocol (AICP)
 
 This site hosts the official specification for AICP.
