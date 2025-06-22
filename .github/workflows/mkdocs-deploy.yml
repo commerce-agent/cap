@@ -55,4 +55,4 @@ jobs:
           source_dir: ./site
           container_name: "$web"
           account_name: retailaicp
-          sas_token: "${{ secrets.AZURE_STORAGE_SAS_TOKEN }}"
+          sas_token: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
