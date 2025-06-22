@@ -1,8 +1,8 @@
 # Project information
-site_name: AI Commerce Protocol (AICP)
+site_name: Commerce Agent Protocol (CAP)
 site_url: "" # Placeholder - Fill in with your GitHub Pages URL later
 site_description: >-
-  Specification for the AI Commerce Protocol,
+  Specification for the Commerce Agent Protocol,
   enabling standardized e-commerce capabilities for AI agents.
 site_author: Cloves Almeida, Boston Consulting Group
 site_dir: site
@@ -11,15 +11,15 @@ site_dir: site
 nav:
   - Home: index.md
   - Topics:
-    - "Why AICP Leverages A2A": topics/why-a2a.md
+    - "Why CAP Leverages A2A": topics/why-a2a.md
     - "Merchant Agent Discovery": topics/discovery-rationale.md
     - "FAQ for Merchant Agents": topics/faq-merchants.md
     - "FAQ for Client Agents": topics/faq-clients.md
   - Specification: specification.md
 
 # Repository (Optional - uncomment and fill in if you have one)
-# repo_name: your-username/aicp
-# repo_url: https://github.com/your-username/aicp
+# repo_name: your-username/cap
+# repo_url: https://github.com/your-username/cap
 
 # Copyright (Optional - uncomment and fill in)
 # copyright: Copyright Cloves Almeida 2024

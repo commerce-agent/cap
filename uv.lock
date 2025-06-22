@@ -3,21 +3,6 @@ revision = 1
 requires-python = ">=3.13"
 
 [[package]]
-name = "aicp"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "mkdocs-material" },
-    { name = "mkdocs-redirects" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "mkdocs-material", specifier = ">=9.6.14" },
-    { name = "mkdocs-redirects", specifier = ">=1.2.2" },
-]
-
-[[package]]
 name = "babel"
 version = "2.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -37,6 +22,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/04/7b415bd75c8ab3268cc138c76fa648c19495fcc7d155508a0e62f3f82308/backrefs-5.8-py312-none-any.whl", hash = "sha256:bbef7169a33811080d67cdf1538c8289f76f0942ff971222a16034da88a73486", size = 398021 },
     { url = "https://files.pythonhosted.org/packages/04/b8/60dcfb90eb03a06e883a92abbc2ab95c71f0d8c9dd0af76ab1d5ce0b1402/backrefs-5.8-py313-none-any.whl", hash = "sha256:e3a63b073867dbefd0536425f43db618578528e3896fb77be7141328642a1585", size = 399915 },
     { url = "https://files.pythonhosted.org/packages/0c/37/fb6973edeb700f6e3d6ff222400602ab1830446c25c7b4676d8de93e65b8/backrefs-5.8-py39-none-any.whl", hash = "sha256:a66851e4533fb5b371aa0628e1fee1af05135616b86140c9d787a2ffdf4b8fdc", size = 380336 },
+]
+
+[[package]]
+name = "cap-spec"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "mkdocs-material" },
+    { name = "mkdocs-redirects" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mkdocs-material", specifier = ">=9.6.14" },
+    { name = "mkdocs-redirects", specifier = ">=1.2.2" },
 ]
 
 [[package]]
