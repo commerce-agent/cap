@@ -43,8 +43,8 @@ The AI Commerce Protocol (AICP) is designed to achieve the following primary goa
 - **Support Flexible Extensibility:** To allow merchants to complement standard AICP capabilities by offering additional, clearly declared functionalities alongside the core operations.
 
 ### 1.3. Scope
-#### 1.3.1. In-scope (draft-01)
-The `draft-01` version of AICP encompasses the following:
+#### 1.3.1. In-scope
+The current version of AICP encompasses the following:
 
 -   Definition of how merchants declare their AICP e-commerce capabilities.
 -   Requirements for secure authentication and authorization for AICP interactions.
@@ -53,8 +53,8 @@ The `draft-01` version of AICP encompasses the following:
 -   Definition of the data structures for requests and responses for each AICP operation.
 -   Standardized patterns for reporting success and errors for AICP operations.
 
-#### 1.3.2. Out-of-scope (draft-01)
-The `draft-01` version of AICP explicitly excludes:
+#### 1.3.2. Out-of-scope
+The current version of AICP explicitly excludes:
 
 -   Definition of the underlying agent-to-agent communication mechanisms. (AICP relies on a general [agent communication framework][A2A-SPEC] for these foundational components.)
 -   The internal logic, decision-making processes, or ranking algorithms of Client Agents or merchant Remote Agents.
@@ -62,7 +62,7 @@ The `draft-01` version of AICP explicitly excludes:
 -   Detailed integration mechanics with specific payment gateways, focusing instead on the data exchange and hand-off points within the `aicp:checkout` task.
 -   Prescriptive guidance on user interface (UI) or user experience (UX) design for Client Agents or merchant systems.
 
-_Note: Comprehensive definitions for payment gateway integrations are considered for inclusion in future AICP versions, pending successful implementation and validation of the core purchase flow outlined in this document._
+_Note: Comprehensive definitions for payment gateway integrations are considered for inclusion in future AICP versions_
 
 ## 2. Conformance
 The key words "**MUST**", "**MUST NOT**", "**REQUIRED**", "**SHALL**", "**SHALL NOT**", "**SHOULD**", "**SHOULD NOT**", "**RECOMMENDED**", "**MAY**", and "**OPTIONAL**" in this document are to be interpreted as described in [RFC 2119].
@@ -176,22 +176,39 @@ All interactions between a Client Agent and an AICP Merchant Agent **MUST** be p
 
 To invoke a specific AICP Skill (e.g., `aicp:product_search`), the Client Agent **MUST** use a standard A2A RPC method that initiates or sends a message for a task, such as `message/send` (Section 7.1 of [A2A-SPEC]) or `message/stream` (Section 7.2 of [A2A-SPEC]) if streaming updates are desired and supported by the Merchant Agent.
 
-The A2A `Message` object within the request parameters (e.g., `MessageSendParams.message`) **MUST** be structured as follows for AICP:
+The A2A `Message` object (Section 6.4 of [A2A-SPEC]) within the request parameters (e.g., `MessageSendParams.message`) is structured as follows for AICP:
 
-1.  **AICP Skill Invocation via `DataPart`:**
-    *   For a standard AICP Skill invocation, the `parts` array of the A2A `Message` object (Section 6.4 of [A2A-SPEC]) **SHOULD** contain a single A2A `DataPart` (Section 6.5.3 of [A2A-SPEC]).
+**Skill Invocation Method:**
+AICP extends A2A intent mechanism to supports two primary methods for a Client Agent to indicate the desired skill and provide its inputs:
+
+1.  **Direct Skill Invocation (Explicit Intent via `DataPart`):**
+    *   This is the **RECOMMENDED** method when the Client Agent has resolved the user's intent to a specific AICP Skill, particularly for programmatic interactions.
+        *   This invocation method requires no natural language processing to resolve Client Agent intent.
+    *   The `Message.parts` array **SHOULD** contain a single A2A `DataPart`, optionally also providing a `DataPart` for skill `aicp:user_preferences_set`, per Section 4.2.4.
     *   The `metadata` field of this `DataPart` **MUST** contain a `skillId` field, specifying the `id` of the target AICP Skill (e.g., `"aicp:product_search"`).
-    *   The `data` field of this `DataPart` **MUST** be a JSON object representing the input parameters for that AICP Skill, as defined in Section 5 (AICP Skills).
-    *   Example `DataPart.metadata`: `{ "skillId": "aicp:product_search" }`
+        *   *Example `DataPart.metadata` for direct invocation:* `{ "skillId": "aicp:product_search" }`
+    *   The `data` field of this `DataPart` **MUST** be a JSON object representing the structured input parameters for that AICP Skill, as defined in Section 5 (AICP Skills).
 
-2.  **A2A `Message.contextId` for Context Continuity (OPTIONAL):**
-    *   To enable personalized results or maintain context across a series of interactions with a specific Merchant Agent, Client Agents **SHOULD** capture the `contextId` returned in an A2A `Task` object (see Section 6.1 of [A2A-SPEC]) from that Merchant Agent.
-    *   For subsequent A2A `Message`s intended to be part of that same context, the Client Agent **SHOULD** send this received `contextId` in the `contextId` field of the `Message` object (see Section 6.4 of [A2A-SPEC]).
-    *   The establishment of preferences and consent associated with this `contextId` is managed via the `aicp:user_preferences_set` skill (see Section 5.5.1).
+2.  **Text-based Skill Invocation (Inferred Intent via `TextPart`):**
+    *   To support more fluid, conversational interactions, an AICP Merchant Agent **MAY** allow Client Agents to submit requests as natural language text, from which the Merchant Agent infers the intended AICP Skill and parameters.
+    *   In this model, the `Message.parts` array **SHOULD** contain a single A2A `TextPart` (Section 6.5.1 of [A2A-SPEC]) holding the user's natural language request (e.g., `"find me red running shoes under $100"`).
+    *   For this type of invocation, a `DataPart` with an AICP `skillId` in its `metadata` **MAY** be present to hint the Merchant Agent of the primary inferred intent, but it's not mandatory.
+    *   The Merchant Agent performs the skill routing by interpreting the content of the `TextPart`.
+    *   **Support and Scalability:**
+        *   Merchant Agents **MAY** opt-out of supporting text-based invocation for some or all of their AICP skills due to the potential computational costs of natural language processing at scale.
+        *   A Merchant Agent signals its support for text-based invocation for a specific skill by including an appropriate MIME type representing natural language (e.g., `text/plain`) in the `inputModes` array for that skill within its `AgentCard.skills` (or in `AgentCard.defaultInputModes` if applicable globally). If `text/plain` (or an equivalent MIME type) is not listed as a supported input mode for a skill, Client Agents **SHOULD** assume text-based invocation for that skill is not supported (see A2A-SPEC Section 5.5.4).
+        *   If a Merchant Agent receives an A2A `Message` containing only a `TextPart` intended for AICP skill invocation but does not support or cannot route this text-based request for the intended skill, it **SHOULD** respond with a standard A2A `JSONRPCError` with `code: -32005` (`ContentTypeNotSupportedError`), as defined in Section 8.2 of [A2A-SPEC]. The error's `data` field **MAY** provide additional context.
 
-*(Note: The capability for bundling multiple skill invocations by having multiple such DataParts in the Message.parts array, each with their own skillId in DataPart.metadata, is a potential future extension and not the primary model for draft-01. For draft-01, one DataPart with one skillId per Message is the standard.)*
+The interaction methods above are aimed at skill routing - skills are allowed to specify support for natural language text fields in their structured `DataPart` input specifications to augment their interaction.
 
-**Example A2A Request to initiate `aicp:product_search`:**
+**Context Continuity (A2A `Message.contextId`):**
+*   To enable personalized results or maintain context across a series of interactions with a specific Merchant Agent, Client Agents **SHOULD** capture the `contextId` returned in an A2A `Task` object (see Section 6.1 of [A2A-SPEC]) from that Merchant Agent.
+*   For subsequent A2A `Message`s intended to be part of that same context, the Client Agent **SHOULD** send this received `contextId` in the `contextId` field of the `Message` object (see Section 6.4 of [A2A-SPEC]).
+*   The establishment of preferences and consent associated with this `contextId` is managed via the `aicp:user_preferences_set` skill (see Section 5.5.1).
+
+*(Note: The capability for bundling multiple skill invocations by having multiple such DataParts in the Message.parts array, each with their own skillId in DataPart.metadata, is a potential future extension and not the primary model for draft-01. For draft-01, one DataPart with one skillId per Message is the standard for direct invocation.)*
+
+**Example A2A Request to initiate `aicp:product_search` (Direct Invocation):**
 
 This conceptual example uses the A2A `message/send` method. It assumes a `contextId` was generated from a previous interaction. Refer to [A2A-SPEC] Section 7.1 for the full `MessageSendParams` structure.
 
@@ -297,7 +314,7 @@ AICP interactions can be synchronous or asynchronous, leveraging A2A's capabilit
 
 AICP itself does not add new streaming or push notification mechanisms beyond what A2A provides. Client Agents and Merchant Agents **MUST** follow the procedures in [A2A-SPEC] for these asynchronous patterns.
 
-#### 4.2.4. User Personalization Context via A2A `contextId`
+#### 4.2.4. User Personalization Context
 
 AICP leverages the standard A2A `Task.contextId` (see Section 6.1 of [A2A-SPEC]) for enabling Merchant Agents to provide personalized experiences and maintain context continuity across multiple interactions with a Client Agent for a specific user. The `contextId` is generated by the Merchant Agent (A2A Server). This feature is aimed at supporting personalization of pre-sign-in interactions such as "guest" product search and product details, avoiding the need for OAuth2 sign-in for many interactions.
 
@@ -370,7 +387,7 @@ Client Agents **MUST** specify the target AICP Skill by including `{\"skillId\":
 
 #### 5.3.1. `aicp:cart_manage`
 *   **Skill ID:** `aicp:cart_manage`
-*   **Purpose:** Enables a Client Agent to manage a user\'s shopping cart, including viewing the cart, adding items, updating quantities, and removing items. This skill will require a sub-action parameter to specify the desired cart operation.
+*   **Purpose:** Enables a Client Agent to manage a user's shopping cart, including viewing the cart, adding items, updating quantities, and removing items. This skill will require a sub-action parameter to specify the desired cart operation.
 *   **Input Parameters:** *(Placeholder: To be detailed - including sub-action (view, add, update, remove, clear), item identifiers, quantities, variant specifics)*
 *   **Result Artifact:** *(Placeholder: To be detailed - typically the updated cart state)*
 *   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., item_not_available, invalid_item_id)*
@@ -379,7 +396,7 @@ Client Agents **MUST** specify the target AICP Skill by including `{\"skillId\":
 
 #### 5.4.1. `aicp:checkout`
 *   **Skill ID:** `aicp:checkout`
-*   **Purpose:** Initiates the checkout process for the current cart\'s contents. For `draft-01`, this involves preparing the order and providing information for hand-off to the merchant\'s payment system.
+*   **Purpose:** Initiates the checkout process for the current cart's contents. For `draft-01`, this involves preparing the order and providing information for hand-off to the merchant's payment system.
 *   **Input Parameters:** *(Placeholder: To be detailed - potentially a cart identifier or session context)*
 *   **Result Artifact:** *(Placeholder: To be detailed - typically an order ID and a redirect URL or instructions for payment hand-off)*
 *   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., cart_empty, checkout_preconditions_not_met)*
@@ -454,7 +471,7 @@ We define principles to apply to all user data processed for personalization, in
 
 
 -   **Transparency:** Users **MUST** be clearly informed about what data is collected for personalization, how it is used, and with whom it is shared.
--   **User Control & Consent:** Personalization data **MUST** only be collected, stored, or used with the user\'s explicit, informed, and voluntary consent. Users **MUST** have accessible ways to review, modify, or withdraw their consent at any time.
+-   **User Control & Consent:** Personalization data **MUST** only be collected, stored, or used with the user's explicit, informed, and voluntary consent. Users **MUST** have accessible ways to review, modify, or withdraw their consent at any time.
 -   **Purpose Limitation:** Data collected for personalization **MUST** only be used for the specific, consented purpose. Any other use **MUST** have new, explicit consent.
 -   **Data Minimization:** Only the minimum data necessary for the stated personalization purpose **SHOULD** be collected and processed.
 -   **Security:** All parties **MUST** apply strong security measures to protect user data from unauthorized access, disclosure, or misuse.
@@ -466,12 +483,12 @@ In this section we define the standard policies Client Agents **SHOULD** present
 
 #### 7.2.1 Policy: `all`
 
-This policy explains how your information is used when you agree to **this policy** for personalized services offered by a merchant through your AI assistant. Agreeing to **this policy** means you consent to the merchant\'s system collecting and using your data as described below to enhance your experience.
+This policy explains how your information is used when you agree to **this policy** for personalized services offered by a merchant through your AI assistant. Agreeing to **this policy** means you consent to the merchant's system collecting and using your data as described below to enhance your experience.
 
 **1. What Information is Used**
-To personalize your experience, the merchant\'s system uses several types of information:
+To personalize your experience, the merchant's system uses several types of information:
     *   It uses the data you share directly via your AI assistant, such as your preferences and consent choices.
-    *   It keeps a record of your activities with the merchant\'s services, like your searches, the products you view, and your cart activity.
+    *   It keeps a record of your activities with the merchant's services, like your searches, the products you view, and your cart activity.
     *   From your information and interactions, the system also derives insights about your preferences and characteristics to better tailor services to you.
 
 **2. How Your Information is Used**
@@ -480,23 +497,122 @@ Your information helps us to:
     *   Remember your settings for a smoother and more convenient experience.
     *   Analyze usage (often aggregated or de-identified) to understand how our services are used and to improve our offerings.
     *   Facilitate your transactions and overall interactions with the platform.
+    *   Link interaction data from your un-authenticated browsing context to your account if you sign in later, creating a continuous personalized experience.
 
 **3. How Your Information is Shared**
-    *   Your information is used by the specific merchant you\'re interacting with.
-    *   The merchant will not sell or share your identifiable personal information with unaffiliated third parties for their marketing or advertising. Sharing with such parties is strictly limited to what\'s essential for services you explicitly request (e.g., payment processing, shipping) or when required by law.
-    *   This policy doesn\'t cover your AI assistant\'s data practices, which has its own policy.
+    *   Your information is used by the specific merchant you're interacting with.
+    *   The merchant will not sell or share your identifiable personal information with unaffiliated third parties for their marketing or advertising. Sharing with such parties is strictly limited to what's essential for services you explicitly request (e.g., payment processing, shipping) or when required by law.
+    *   This policy doesn't cover your AI assistant's data practices, which has its own policy.
 
 **4. Your Control Over Consent**
-    *   You control your consent and can change or withdraw it at any time using your AI assistant\'s preference settings.
-    *   Withdrawing consent stops future personalization based on this policy. Information collected previously will be handled according to the merchant\'s data retention policies and legal duties, but not used for new personalization under the withdrawn consent.
+    *   You control your consent and can change or withdraw it at any time using your AI assistant's preference settings.
+    *   Withdrawing consent stops future personalization based on this policy. Information collected previously will be handled according to the merchant's data retention policies and legal duties, but not used for new personalization under the withdrawn consent.
 
 **5. Data Retention**
     *   Your information and any inferred insights are kept as long as needed for personalization, operational needs, or as legally required, linked to your interaction context and consent.
 
 ## 8. Security Considerations
 
+Security is fundamental to the trust and reliability of AICP interactions. This section outlines key security considerations. Implementers **MUST** also adhere to general web security best practices.
+
+### 8.1. Authentication
+
+AICP's authentication model is built upon the mechanisms defined in the [Agent2Agent (A2A) Protocol Specification][A2A-SPEC] (see Section 4 of [A2A-SPEC]). Key principles include:
+
+*   **Transport Security:** All AICP communication **MUST** occur over HTTPS.
+*   **Declared Schemes:** Merchant Agents **MUST** declare their supported authentication schemes in their A2A Agent Card (specifically in the `securitySchemes` and `security` fields, as per A2A-SPEC Section 5.5 and AICP Section 4.1.4). AICP **RECOMMENDS** the use of OpenID Connect (OIDC) as the primary authentication scheme.
+*   **Client Authentication:** For skills requiring authentication, Client Agents **MUST** include appropriate credentials (e.g., a valid Bearer token in `Authorization` header, a valid key in `X-API-Key`) with their requests, as per the merchant's declared schemes. Merchant Agents **MUST** authenticate these requests.
+
+#### 8.1.1. Publicly Accessible Skills
+
+While many AICP skills involve sensitive operations or user data and thus require robust authentication, certain skills may be designed for public, non-authenticated access (e.g., general product searches, retrieving publicly available store information).
+
+To accommodate this, AICP defines the following convention:
+
+*   An AICP Skill **MAY** be designated as publicly accessible if it includes the tag `auth:public` within the `tags` array of its `AgentSkill` object definition in the Merchant Agent's A2A Agent Card. (The `AgentSkill` object and its `tags` array are defined in Section 5.5.4 of [A2A-SPEC]).
+*   Merchant Agents **SHOULD** accept and process requests invoking an AICP Skill tagged `auth:public` without requiring an `Authorization` header or other forms of client authentication.
+*   If an AICP Skill is **NOT** tagged with `auth:public`, or if the tag is absent, it **MUST** require authentication. In such cases, Merchant Agents **MUST** enforce the authentication requirements declared in their A2A Agent Card, as per standard A2A protocol behavior (see Section 4 of [A2A-SPEC]), and **MUST** reject unauthenticated or improperly authenticated requests accordingly.
+*   Client Agents, before attempting an unauthenticated request to an AICP Skill, **SHOULD** inspect the skill's definition in the Merchant Agent's Agent Card to check for the presence of the `auth:public` tag.
+
+Even for skills marked `auth:public`, Merchant Agents **SHOULD** implement appropriate measures to protect against abuse, such as rate limiting and traffic analysis.
+
+#### 8.1.2. Rate Limiting and Abuse Protection
+
+To ensure service stability and fair usage, and to protect against denial-of-service attacks or misbehaving clients (including overly aggressive crawlers), Merchant Agents **SHOULD** implement robust rate limiting on their AICP API endpoints.
+
+*   Rate limits may be based on various factors, including but not limited to: source IP address, authenticated Client Agent identity (if applicable), specific skill invocation frequency, or overall request volume.
+*   When a request is denied due to rate limiting, the Merchant Agent **SHOULD** respond with an HTTP `429 Too Many Requests` status code.
+    *   The response **MAY** include a body to provide more detailed, machine-readable context about the rate limit. This information can be particularly useful for Client Agents and their underlying language models to understand the reason and adapt behavior. If a body is provided, it is **RECOMMENDED** to use a JSON object structure consistent with the AICP error reporting format (see Section 6), for example:
+        ```json
+        {
+          "aicpErrorCode": "AICP_RATE_LIMIT_EXCEEDED", // Or a more specific merchant-defined code like "AICP_HOURLY_QUOTA_EXCEEDED"
+          "description": "The request has been rate-limited. Please reduce request frequency or try again after the specified period.", // More descriptive
+          "details": { // Structured details aimed at automated parsing or LLM interpretation, all fields are optional.
+            "skillId": "aicp:product_search",
+            "limitType": "requests_per_minute", 
+            "limitScope": "per_client_agent_id", // Example: or "per_ip", "global"
+            "requestsMade": 120,                 // Example
+            "requestsAllowed": 100,              // Example
+            "retryAfterSeconds": 60              // Consistent with Retry-After header
+          }
+        }
+        ```
+*   It is further **RECOMMENDED** that Merchant Agents include a `Retry-After` HTTP header with the 429 response, indicating how long the client should wait before making a new request, as per [RFC 6585](https://tools.ietf.org/html/rfc6585).
+
+Merchant Agents are also responsible for other general abuse protection mechanisms appropriate for public-facing APIs.
+
+### 8.2. Authorization
+*(Placeholder: Details on authorization policies once a client is authenticated will be added here. This will cover how Merchant Agents determine if an authenticated client has permission to invoke a specific skill or access certain resources.)*
+
+### 8.3. Data Validation and Input Sanitization
+*(Placeholder: Guidelines for validating and sanitizing data in requests and responses to prevent common vulnerabilities like injection attacks will be added here.)*
+
+### 8.4. Protection Against Common Web Vulnerabilities
+*(Placeholder: Recommendations for protecting against common web vulnerabilities (e.g., XSS, CSRF if applicable in any supporting web interfaces) will be added here.)*
+
 ## 9. Extensibility
-Merchants **MAY** expose additional AICP Skills or other A2A tasks not defined in this core specification by declaring them in their A2A Agent Card. Client Agents encountering unknown skill IDs in an Agent Card **SHOULD** ignore them if they are not programmed to handle them. If a standard AICP Skill is extended by a Merchant Agent with new **OPTIONAL** parameters in its input structure or additional **OPTIONAL** fields in its result artifact, conforming Client Agents **SHOULD** gracefully handle their absence or presence. Client Agents **SHOULD NOT** expect non-standard OPTIONAL fields to be present and **MUST NOT** fail if they are absent. Merchant Agents **MUST NOT** alter the fundamental behavior or remove **REQUIRED** fields from standard AICP Skills.
+
+AICP is designed to be extensible, allowing Merchant Agents to offer capabilities beyond the core skills defined in this specification and to augment standard skills with additional optional information. This extensibility must be approached in a way that maintains baseline interoperability.
+
+The AICP standard itself is an evolving effort. While this document defines foundational e-commerce interactions, further development and refinement are ongoing.
+
+### 9.1. Modes of Extensibility
+
+AICP can be extended in several ways:
+
+*   **Merchant-Specific Custom Skills:** As detailed below, individual Merchant Agents can offer custom skills beyond the standard set.
+*   **Optional Extensions to Standard Skills:** Merchants can add optional parameters or fields to standard skills.
+*   **AICP Profiles for Verticals:** It is anticipated that specialized "profiles" of AICP may be developed in the future to cater to the unique needs of specific industry verticals (e.g., travel and tourism, food delivery, financial services). These profiles would build upon the core AICP specification, adding skills or refining data structures relevant to that vertical.
+*   **Evolution of the Core Specification:** The core AICP specification will evolve over time to incorporate new generally applicable e-commerce capabilities.
+
+### 9.2. Declaring Additional Custom Skills
+
+Merchant Agents **MAY** expose additional, custom AICP Skills or other A2A tasks not defined in this core specification by declaring them in their A2A Agent Card (within the `skills` array, as per A2A-SPEC Section 5.5.4).
+
+*   **Client Agent Behavior:** Client Agents encountering unknown skill IDs in an Agent Card **MAY** ignore them if they are not programmed to handle them.
+*   **Merchant Agent Responsibilities for Custom Skills:** For effective discovery and utilization of custom skills, Merchant Agents **SHOULD**:
+    1.  Provide clear and comprehensive documentation for these custom skills. This documentation **SHOULD** be accessible, for instance, via the `documentationUrl` field in their `AgentCard` or provided in the skill's `description` field.
+    2.  Understand that the adoption and successful use of complex or highly specialized custom skills may require direct engagement or communication with Client Agent developers or providers.
+*   **Scope in `draft-01`:** This version of AICP primarily focuses on standardizing core e-commerce operations. The mechanisms for broad, automated discovery and negotiation of purely custom skills beyond their declaration in the Agent Card are considered out of scope for this version and may rely on bilateral agreements or future community-developed conventions.
+
+### 9.3. Extending Standard AICP Skills
+
+Merchant Agents **MAY** extend standard AICP Skills by including additional **OPTIONAL** parameters in their input data structures or by providing additional **OPTIONAL** fields in their result artifact data structures.
+
+*   **Client Agent Handling of Extensions:** Conforming Client Agents **SHOULD** gracefully handle the absence or presence of such optional extensions when interacting with different Merchant Agents. Client Agents **SHOULD NOT** expect non-standard optional fields or parameters to be present and **MUST NOT** fail if they are absent.
+*   **Facilitating Adoption of Extensions:** The adoption of such optional extensions by Client Agent developers often depends on their perceived value, ease of implementation, and the clarity of documentation provided by the Merchant Agent.
+
+### 9.4. Maintaining Core Interoperability
+
+To ensure baseline interoperability:
+
+*   Merchant Agents **MUST NOT** alter the fundamental behavior or semantics of the standard AICP Skills defined in this specification.
+*   Merchant Agents **MUST NOT** remove or change the meaning of **REQUIRED** fields or parameters from the standard definitions of AICP Skills.
+*   All extensions to standard skills **MUST** be additive and optional.
+
+### 9.5. Contributing to AICP Standardization
+
+Organizations interested in contributing to the AICP standard, particularly by proposing extensions for general use cases or developing new profiles for specific verticals, are encouraged to reach out to the specification editors or participate in the designated community forums (details for which will be provided as the governance model for AICP is formalized).
 
 ## 10. Future Work
 *(Placeholder for extensions, payment flows, advanced features, and skill versioning strategies.)*
@@ -504,11 +620,16 @@ Merchants **MAY** expose additional AICP Skills or other A2A tasks not defined i
 ## 11. References
 - **[A2A-SPEC]** Google, "Agent2Agent (A2A) Protocol Specification", Version 0.2.1 (or latest). URL: [https://google.github.io/A2A/specification/](https://google.github.io/A2A/specification/)
 - **[RFC 2119]** Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997.
-- **[RFC 8141]** Saint-Andre, P. and J. Klensin, "Uniform Resource Names (URNs)", RFC 8141, DOI 10.17487/RFC8141, April 2017.
+- **[RFC 8141]** Saint-Andre, P. and J. Klensin, "Uniform Resource Names (URNs)", RFC 8141, DOI 10.17487/RFC8141, April 2017. URL: [https://tools.ietf.org/html/rfc8141](https://tools.ietf.org/html/rfc8141)
+- **[RFC 6585]** Nottingham, M., and R. Fielding, "Additional HTTP Status Codes", RFC 6585, DOI 10.17487/RFC6585, April 2012. URL: [https://tools.ietf.org/html/rfc6585](https://tools.ietf.org/html/rfc6585)
+- **[IETF BCP 47]** Phillips, A., Ed., and M. Davis, Ed., "Tags for Identifying Languages", BCP 47, RFC 5646, September 2009. URL: [https://tools.ietf.org/html/bcp47](https://tools.ietf.org/html/bcp47)
+- **[IANA Time Zone Database]** Internet Assigned Numbers Authority, "Time Zone Database". URL: [https://www.iana.org/time-zones](https://www.iana.org/time-zones)
+- **[ISO 4217]** International Organization for Standardization, "Codes for the representation of currencies". URL: [https://www.iso.org/iso-4217-currency-codes.html](https://www.iso.org/iso-4217-currency-codes.html)
 
 [A2A-SPEC]: https://google-a2a.github.io/A2A/specification/
 [RFC 2119]: https://www.rfc-editor.org/info/rfc2119
 [RFC 8141]: https://www.rfc-editor.org/info/rfc8141
-[IETF BPC 47]: https://www.rfc-editor.org/info/bcp47
+[RFC 6585]: https://tools.ietf.org/html/rfc6585
+[IETF BCP 47]: https://www.rfc-editor.org/info/bcp47
 [IANA Time Zone Database]: https://www.iana.org/time-zones
 [ISO 4217]: https://www.iso.org/iso-4217-currency-codes.html

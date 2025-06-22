@@ -14,8 +14,8 @@ nav:
   - Topics:
     - "Why AICP Leverages A2A": topics/why-a2a.md
     - "Merchant Agent Discovery": topics/discovery-rationale.md
-    - "FAQ - Merchant Agent Implementation": topics/faq-merchant-implementation.md
-    - "FAQ - Client Agent Implementation": topics/faq-client-agent-implementation.md
+    - "FAQ for Merchant Agents": topics/faq-merchants.md
+    - "FAQ for Client Agents": topics/faq-clients.md
 
 # Repository (Optional - uncomment and fill in if you have one)
 # repo_name: your-username/aicp

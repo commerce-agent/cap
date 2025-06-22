@@ -2,3 +2,4 @@ a2a/
 .cursor/
 site/
 .venv/
+.DS_Store

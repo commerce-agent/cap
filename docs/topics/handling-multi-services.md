@@ -1,7 +1,0 @@
-# Handling Multiple A2A Services under One Domain
-
-AICP adheres to the A2A model, where each A2A Agent Card (typically found at `/.well-known/agent.json` for a domain) defines a single `url` (the A2A service endpoint, see Section 5.5 of [A2A-SPEC]). This strategic design choice, inherited from A2A, minimizes integration complexity for Client Agents.
-
-In scenarios where a merchant offers multiple distinct A2A services under a single domain (e.g., an AICP e-commerce service and a separate A2A recommendation agent), all skills for all services **MUST** be declared in that single Agent Card for the domain. All A2A task requests are then directed to the single declared `url`. The merchant's A2A service endpoint (acting as a gateway) is then responsible for routing these tasks to the appropriate internal backend system. This routing is typically based on the `skillId` provided in the A2A `Message.metadata` (as per AICP convention for invoking its skills) or other means consistent with their overall A2A implementation for non-AICP skills. This allows a unified A2A presence for the domain while supporting internal modularity for different agentic services.
-
-[A2A-SPEC]: https://google.github.io/A2A/specification/ 
