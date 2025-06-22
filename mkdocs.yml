@@ -12,7 +12,6 @@ nav:
   - Home: index.md
   - Topics:
     - "Why CAP Leverages A2A": topics/why-a2a.md
-    - "Merchant Agent Discovery": topics/discovery-rationale.md
     - "FAQ for Merchant Agents": topics/faq-merchants.md
     - "FAQ for Client Agents": topics/faq-clients.md
   - Specification: specification.md
