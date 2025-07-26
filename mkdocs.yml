@@ -1,6 +1,6 @@
 # Project information
 site_name: Commerce Agent Protocol (CAP)
-site_url: "" # Placeholder - Fill in with your GitHub Pages URL later
+site_url: "https://cap-spec.org/"
 site_description: >-
   Specification for the Commerce Agent Protocol,
   enabling standardized e-commerce capabilities for AI agents.
