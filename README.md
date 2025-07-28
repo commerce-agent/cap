@@ -2,7 +2,7 @@
 
 [![Status](https://img.shields.io/badge/status-draft--01-orange)](docs/specification.md)
 
-The **Commerce Agent Protocol (CAP)** is an open standard that enables personal AI agents to seamlessly discover and interact with compliant merchants for complete e-commerce purchase flows. CAP builds on the [Agent2Agent (A2A) Protocol](https://google-a2a.github.io/A2A/) to provide standardized operations, data structures, and interaction guidelines specifically for AI-driven commerce.
+The **Commerce Agent Protocol (CAP)** is an open standard that enables personal AI agents to seamlessly discover and interact with compliant merchants for complete e-commerce purchase flows. CAP builds on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/latest/) to provide standardized operations, data structures, and interaction guidelines specifically for AI-driven commerce.
 
 ## What CAP Enables
 

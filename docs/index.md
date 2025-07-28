@@ -52,7 +52,7 @@ CAP empowers AI agents to become capable shopping assistants by addressing key c
 
 ### Built on Agent2Agent (A2A) protocol
 
-CAP is a specialization of the [Agent2Agent (A2A) Protocol](https://google-a2a.github.io/A2A/).
+CAP is a specialization of the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/latest/).
 
 ![CAP builds on A2A Graphic](./assets/cap-on-a2a.png)
 { .cap-on-a2a }
@@ -66,7 +66,7 @@ It leverages A2A's core framework for:
 
 CAP then focuses on defining the e-commerce-specific aspects: standardized operations, data structures for commerce, merchant and product discoverability, specific capability declarations, and interaction guidelines.
 
-[Learn more about the Agent2Agent (A2A) Protocol](https://google-a2a.github.io/A2A/)
+[Learn more about the Agent2Agent (A2A) Protocol](https://a2a-protocol.org/latest/)
 
 ---
 

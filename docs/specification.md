@@ -12,12 +12,14 @@ hide:
 
 **Summary**
 
-This document specifies the Commerce Agent Protocol (CAP). CAP defines a set of standardized e-commerce capabilities for AI agents, **profiled as a specialized application of the [Agent2Agent (A2A) Protocol][A2A-SPEC]**. By leveraging A2A's core framework for agent discovery (via Agent Cards), task management, and secure communication, CAP enables personal AI agents (Client Agents in A2A terms) to interact with compliant merchants (Remote Agents in A2A terms) for the *core purchase flow* (search → cart → checkout). This approach fosters interoperability and allows merchants to expose commerce functions as well-defined A2A tasks within the broader A2A ecosystem.
+This document specifies the Commerce Agent Protocol (CAP). CAP defines a set of standardized e-commerce capabilities for AI agents, **profiled as a specialized application of the [Agent2Agent (A2A) Protocol][A2A-SPEC]**. By leveraging A2A's core framework for agent discovery (via AgentCards), task management, and secure communication, CAP enables personal AI agents (Client Agents in A2A terms) to interact with compliant merchants (Remote Agents in A2A terms) for the *core purchase flow* (discovery → comparison → cart → checkout → order status). This approach fosters interoperability and allows merchants to expose commerce functions as well-defined A2A tasks within the broader A2A ecosystem.
 
-## 1. Introduction  
-The Commerce Agent Protocol (CAP) provides a standardized interface for personal AI agents to discover merchants and perform e-commerce operations, fostering an open and interoperable ecosystem for AI-driven commerce. To achieve this, CAP leverages the [Agent2Agent (A2A) Protocol][A2A-SPEC] for fundamental agent communication; while initial drafts focus on request-reply operations for core tasks, future versions aim to support more fluid agent interactions. This CAP specification therefore focuses on defining the following e-commerce-specific aspects:
+## 1. Introduction
+The Commerce Agent Protocol (CAP) provides a standardized interface for personal AI agents to discover merchants and perform e-commerce operations, fostering an open and interoperable ecosystem for AI-enabled commerce. To achieve this, CAP leverages the [Agent2Agent (A2A) Protocol][A2A-SPEC] for fundamental agent communication; while initial drafts focus on request-reply operations for core tasks, future versions aim to support more fluid agent interactions. This CAP specification therefore focuses on defining the following e-commerce-specific aspects:
 
--   A clear set of **standardized e-commerce operations** (e.g., product search, cart management).
+-   Broad merchant and product discovery capabilities, leveraging existing Web infrastructure.
+-   A clear set of **standardized e-commerce operations** (e.g., product search, product details, cart management).
+-   Privacy-aware personalization and consent for usage of data in commerce context.
 -   The **data structures** required for requests and responses related to these operations.
 -   Conventions for merchants to **declare their CAP capabilities**.
 -   Guidelines for AI agents to **identify and invoke specific CAP operations**.
@@ -46,9 +48,11 @@ The Commerce Agent Protocol (CAP) is designed to achieve the following primary g
 #### 1.3.1. In-scope
 The current version of CAP encompasses the following:
 
--   Definition of how merchants declare their CAP e-commerce capabilities.
+-   Guidelines on how to discover merchants, products, and how it relates with existing world-wide web ecosystem.
+-   Definition of how merchants declare their CAP e-commerce capabilities using AgentCards.
 -   Requirements for secure authentication and authorization for CAP interactions.
--   Specification of standard CAP e-commerce operations (e.g., product search, inventory query, cart management, checkout, order status, and product retrieval).
+-   Definition of how to share user preferences and transmit user consent for personalization. 
+-   Specification of standard CAP e-commerce operations (e.g., product search, price/inventory query, cart management, checkout, order status, and product retrieval).
 -   The method by which AI agents specify the desired CAP operation when initiating a request.
 -   Definition of the data structures for requests and responses for each CAP operation.
 -   Standardized patterns for reporting success and errors for CAP operations.
@@ -56,13 +60,13 @@ The current version of CAP encompasses the following:
 #### 1.3.2. Out-of-scope
 The current version of CAP explicitly excludes:
 
--   Definition of the underlying agent-to-agent communication mechanisms. (CAP relies on a general [agent communication framework][A2A-SPEC] for these foundational components.)
--   The internal logic, decision-making processes, or ranking algorithms of Client Agents or merchant Remote Agents.
+-   Definition of ad-hoc underlying agent-to-agent communication mechanisms as CAP relies on [A2A-SPEC] for foundational components.
+-   The internal logic, decision-making processes, or ranking algorithms of Client Agents or Merchant Agents when returning results to users.
+-   Monetization aspects, revenue sharing models, or commercial agreements between Client Agent providers and Merchant Agents.
 -   Specifics of merchant back-end data storage, schemas, or internal business logic beyond the defined CAP task interfaces.
 -   Detailed integration mechanics with specific payment gateways, focusing instead on the data exchange and hand-off points within the `cap:checkout` task.
 -   Prescriptive guidance on user interface (UI) or user experience (UX) design for Client Agents or merchant systems.
 
-_Note: Comprehensive definitions for payment gateway integrations are considered for inclusion in future CAP versions_
 
 ## 2. Conformance
 The key words "**MUST**", "**MUST NOT**", "**REQUIRED**", "**SHALL**", "**SHALL NOT**", "**SHOULD**", "**SHOULD NOT**", "**RECOMMENDED**", "**MAY**", and "**OPTIONAL**" in this document are to be interpreted as described in [RFC 2119].
@@ -78,10 +82,10 @@ This section defines key terminology used within the Commerce Agent Protocol (CA
 ### 3.1. Key CAP Terminology
 -   **Client Agent (or Personal AI Agent)**: A personal AI assistant (e.g., ChatGPT, Copilot, Claude), acting on behalf of an end-user, that initiates CAP operations by interacting with a Merchant Agent.
 -   **Agent Provider**: An organization or entity that develops, hosts, or otherwise makes a Client Agent (or Personal AI Agent) available to end-users.
--   **Crawler (or Indexer Bot)**: An automated software agent that systematically browses websites and CAP discovery mechanisms (such as DNS TXT records, HTML link tags, and A2A Agent Cards) to find and index CAP Merchant Agents and their declared capabilities (CAP Skills and product identifiers). The purpose of such indexing is typically to build databases that can be used by Client Agents or other services to discover merchants or product information.
+-   **Crawler (or Indexer Bot)**: An automated software agent that systematically browses websites and CAP discovery mechanisms (such as DNS TXT records, HTML link tags, and A2A AgentCards) to find and index CAP Merchant Agents and their declared capabilities (CAP Skills and product identifiers). The purpose of such indexing is typically to build databases that can be used by Client Agents or other services to discover merchants or product information.
 -   **Merchant Agent**: A Merchant's system that exposes CAP e-commerce capabilities. It processes CAP Skill invocations and publishes a Capabilities Manifest.
 -   **CAP Skill**: A specific, standardized e-commerce capability defined by this CAP specification (e.g., `cap:product_search`, `cap:cart_manage`). CAP Skills are identified by unique skill IDs and are declared by Merchant Agents in their Capabilities Manifest. These correspond to A2A "skills" or "task intents" within the A2A framework.
--   **Capabilities Manifest**: A structured, machine-readable document published by a Merchant Agent, which **is an A2A Agent Card** as defined in Section 5.5 of the [A2A-SPEC]. It describes the Merchant Agent's identity, the CAP Skills it supports, the service endpoint URL for these skills, and required authentication mechanisms.
+-   **Capabilities Manifest**: A structured, machine-readable document published by a Merchant Agent, which **is an A2A AgentCard** as defined in the [A2A-SPEC]. It describes the Merchant Agent's identity, the CAP Skills it supports, the service endpoint URL for these skills, and required authentication mechanisms.
 -   **URN (Uniform Resource Name)**: A persistent, location-independent identifier, as defined in [RFC 8141]. CAP uses URNs to identify products.
 
 *(Note: CAP leverages the standard A2A `Task.contextId` field, generated by the Merchant Agent, for linking related interactions and potentially for associating user personalization context. CAP does not define its own separate user context identifier.)*
@@ -90,48 +94,48 @@ This section defines key terminology used within the Commerce Agent Protocol (CA
 
 ### 4.1. Discovery of CAP Merchant Agents
 
-CAP Merchant Agents are discovered by Client Agents through their **Capabilities Manifest**, which **is an A2A Agent Card** as defined in Section 5 of the [A2A-SPEC]. This Agent Card **MUST** detail at least the Merchant Agent's identity, its A2A service endpoint URL (`url` field), the CAP Skills it supports (`skills` field), and its authentication requirements.
+CAP Merchant Agents are discovered by Client Agents through their **Capabilities Manifest**, which **is an A2A AgentCard** as defined in the [A2A-SPEC]. This AgentCard **MUST** detail at least the Merchant Agent's identity, its A2A service endpoint URL (`url` field), the CAP Skills it supports (`skills` field), and its authentication requirements.
 
 CAP supports two deployment models:
 
-*   A Merchant Agent **MAY** expose CAP Skills as part of a larger, consolidated A2A service endpoint (an "A2A Gateway") that handles multiple types of A2A tasks for a domain. In this model, CAP Skills are distinguished by their `cap:` prefixed `id`s within a shared Agent Card.
-*   Alternatively, an CAP Merchant Agent **MAY** operate as a standalone A2A service with its own dedicated Agent Card and A2A service endpoint, focused solely on CAP Skills.
+*   A Merchant Agent **MAY** expose CAP Skills as part of a larger, consolidated A2A service endpoint (an "A2A Gateway") that handles multiple types of A2A tasks for a domain. In this model, CAP Skills are distinguished by their `cap:` prefixed `id`s within a shared AgentCard.
+*   Alternatively, an CAP Merchant Agent **MAY** operate as a standalone A2A service with its own dedicated AgentCard and A2A service endpoint, focused solely on CAP Skills.
 
-To ensure robust discovery, Crawlers indexing Merchant Agents and Client Agents seeking an CAP Merchant Agent for a given `{merchant-domain}` **SHOULD** attempt to locate its A2A Agent Card. The first successfully retrieved and validated A2A Agent Card that declares CAP skills (as per [Section 4.1.4](#414-cap-requirements-for-the-agent-card)) **SHOULD** be used, according to the following resolution order:
+To ensure robust discovery, Crawlers indexing Merchant Agents and Client Agents seeking an CAP Merchant Agent for a given `{merchant-domain}` **SHOULD** attempt to locate its A2A AgentCard. The first successfully retrieved and validated A2A AgentCard that declares CAP skills (as per [Section 4.1.4](#414-cap-requirements-for-the-agentcard)) **SHOULD** be used, according to the following resolution order:
 
 1.  **CAP DNS TXT Record for Manifest URL (RECOMMENDED for specific CAP endpoint discovery):**
-    Client Agents **SHOULD** first query for a DNS TXT record at the hostname `_cap.{merchant-domain}`. This method allows merchants to directly specify the URL (potentially including a subpath) of the A2A Agent Card most relevant for CAP interactions.
+    Client Agents **SHOULD** first query for a DNS TXT record at the hostname `_cap.{merchant-domain}`. This method allows merchants to directly specify the URL (potentially including a subpath) of the A2A AgentCard most relevant for CAP interactions.
 2.  **CAP HTML Link Tag Discovery (OPTIONAL):**
-    If interacting with an HTML page from the `{merchant-domain}` (e.g., a homepage or product page), Client Agents **MAY** parse the HTML for a `<link rel="cap-agent-card" href="...">` tag to find the A2A Agent Card.
+    If interacting with an HTML page from the `{merchant-domain}` (e.g., a homepage or product page), Client Agents **MAY** parse the HTML for a `<link rel="cap-agent-card" href="...">` tag to find the A2A AgentCard.
 3.  **General A2A Well-Known URI (OPTIONAL):**
-    As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's Agent Card via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in Section 5.3 of the [A2A-SPEC]).
+    As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's AgentCard via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in the [A2A-SPEC]).
 
 #### 4.1.1. CAP DNS TXT Record for Manifest URL
 
 *   Merchant Agents choosing to use this discovery method **MUST** publish a DNS TXT record at the hostname `_cap.{merchant-domain}`.
-*   This TXT record **MUST** contain a single string value that is the absolute HTTPS URL of the Merchant Agent's A2A Agent Card (e.g., `"https://example.com/store/.well-known/agent.json"`). Key-value formats (like `cap-agent-card-url=...`) **SHOULD NOT** be used for this specific TXT record; the value itself **MUST** be the URL.
+*   This TXT record **MUST** contain a single string value that is the absolute HTTPS URL of the Merchant Agent's A2A AgentCard (e.g., `"https://example.com/store/.well-known/agent.json"`). Key-value formats (like `cap-agent-card-url=...`) **SHOULD NOT** be used for this specific TXT record; the value itself **MUST** be the URL.
 *   Merchants **SHOULD NOT** publish multiple TXT records at the `_cap.{merchant-domain}` hostname for CAP discovery. If multiple records are present, Client Agents and Crawlers **MAY** process only the first one retrieved that contains a valid HTTPS URL.
-*   Client Agents and Crawlers **MAY** query for this TXT record. If found and valid, they would then fetch the A2A Agent Card from the extracted URL.
+*   Client Agents and Crawlers **MAY** query for this TXT record. If found and valid, they would then fetch the A2A AgentCard from the extracted URL.
 
 #### 4.1.2. CAP HTML Link Tag Discovery
 
-*   If a Client Agent or Crawler interacts with an HTML page on the `{merchant-domain}` and has not yet discovered an Agent Card via prior methods, it **MAY** parse the HTML for a `<link>` tag to discover the location of an CAP-relevant A2A Agent Card.
-*   The link tag **SHOULD** be: `<link rel="cap-agent-card" href="<URL_to_Agent_Card>">`.
-    *   The `href` attribute **MUST** be an absolute HTTPS URL or a root-relative path pointing directly to a valid A2A Agent Card (e.g., `https://example.com/store/.well-known/agent.json` or `/custom-path/agent.json`).
-*   Client Agents finding this link **SHOULD** then fetch the A2A Agent Card from the specified `href`.
+*   If a Client Agent or Crawler interacts with an HTML page on the `{merchant-domain}` and has not yet discovered an AgentCard via prior methods, it **MAY** parse the HTML for a `<link>` tag to discover the location of an CAP-relevant A2A AgentCard.
+*   The link tag **SHOULD** be: `<link rel="cap-agent-card" href="<URL_to_AgentCard>">`.
+    *   The `href` attribute **MUST** be an absolute HTTPS URL or a root-relative path pointing directly to a valid A2A AgentCard (e.g., `https://example.com/store/.well-known/agent.json` or `/custom-path/agent.json`).
+*   Client Agents finding this link **SHOULD** then fetch the A2A AgentCard from the specified `href`.
 
 #### 4.1.3. General A2A Discovery: Well-Known URI
 
-*   As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's Agent Card via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in Section 5.3 of the [A2A-SPEC]).
-*   For CAP, any A2A Agent Card retrieved via this method (or any other) **MUST** still declare CAP Skills as specified in [Section 4.1.4](#414-cap-requirements-for-the-agent-card) to be considered an CAP-compliant endpoint.
-*   Per current [A2A-SPEC], it's not possible to use a single Agent Card to specify multiple JSON-RPC endpoints, thus both CAP and non-CAP skills, if they exist, must be supported in the declared endpoint.
+*   As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's AgentCard via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in the [A2A-SPEC]).
+*   For CAP, any A2A AgentCard retrieved via this method (or any other) **MUST** still declare CAP Skills as specified in [Section 4.1.4](#414-cap-requirements-for-the-agentcard) to be considered an CAP-compliant endpoint.
+*   Per current [A2A-SPEC], it's not possible to use a single AgentCard to specify multiple JSON-RPC endpoints, thus both CAP and non-CAP skills, if they exist, must be supported in the declared endpoint.
 
-#### 4.1.4. CAP Requirements for the Agent Card
+#### 4.1.4. CAP Requirements for the AgentCard
 
-The Capabilities Manifest for an CAP Merchant Agent, which is an A2A Agent Card, **MUST** adhere to the structure and requirements outlined in Section 5.5 of the [A2A-SPEC]. In addition, for CAP conformance:
+The Capabilities Manifest for an CAP Merchant Agent, which is an A2A AgentCard, **MUST** adhere to the structure and requirements outlined in the [A2A-SPEC]. In addition, for CAP conformance:
 
--   It **MUST** declare supported CAP Skills within the `capabilities.skills` array. Each declared CAP Skill **MUST** have an `id` field prefixed with `cap:` (e.g., `"id": "cap:product_get"`).
--   It **MUST** accurately declare all necessary authentication requirements (particularly `securitySchemes` and `security` fields) to enable Client Agents to interact with the declared CAP Skills.
+-   It **MUST** declare supported CAP Skills within the `skills` array. Each declared CAP Skill **MUST** have an `id` field prefixed with `cap:` (e.g., `"id": "cap:product_get"`).
+-   It **MUST** accurately declare all necessary authentication requirements (particularly `authentication` field) to enable Client Agents to interact with the declared CAP Skills.
 -   It **MAY** declare non-CAP skills; Client Agents processing CAP interactions **SHOULD** ignore skills with `id`s not prefixed by `cap:` if they are not programmed to handle them.
 
 #### 4.1.5. Product Discovery from Web Pages
@@ -170,13 +174,13 @@ Regardless of how a product identifier string or URN is obtained from a web page
 
 ### 4.2. Interaction Model: Invoking CAP Skills via A2A Tasks
 
-All interactions between a Client Agent and an CAP Merchant Agent **MUST** be performed by invoking A2A Tasks, as defined in Section 6.1 and Section 7 of [A2A-SPEC]. CAP leverages A2A's JSON-RPC 2.0 based methods for initiating tasks, sending messages, and retrieving results.
+All interactions between a Client Agent and an CAP Merchant Agent **MUST** be performed by invoking A2A Tasks, as defined in the [A2A-SPEC]. CAP leverages A2A's JSON-RPC 2.0 based methods for initiating tasks, sending messages, and retrieving results.
 
 #### 4.2.1. Initiating an CAP Skill as an A2A Task
 
-To invoke a specific CAP Skill (e.g., `cap:product_search`), the Client Agent **MUST** use a standard A2A RPC method that initiates or sends a message for a task, such as `message/send` (Section 7.1 of [A2A-SPEC]) or `message/stream` (Section 7.2 of [A2A-SPEC]) if streaming updates are desired and supported by the Merchant Agent.
+To invoke a specific CAP Skill (e.g., `cap:product_search`), the Client Agent **MUST** use a standard A2A RPC method that initiates or sends a message for a task, such as `message/send` or `message/stream` if streaming updates are desired and supported by the Merchant Agent.
 
-The A2A `Message` object (Section 6.4 of [A2A-SPEC]) within the request parameters (e.g., `MessageSendParams.message`) is structured as follows for CAP:
+The A2A `Message` object within the request parameters (e.g., `MessageSendParams.message`) is structured as follows for CAP:
 
 **Skill Invocation Method:**
 CAP extends A2A intent mechanism to supports two primary methods for a Client Agent to indicate the desired skill and provide its inputs:
@@ -196,8 +200,8 @@ CAP extends A2A intent mechanism to supports two primary methods for a Client Ag
     *   The Merchant Agent performs the skill routing by interpreting the content of the `TextPart`.
     *   **Support and Scalability:**
         *   Merchant Agents **MAY** opt-out of supporting text-based invocation for some or all of their CAP skills due to the potential computational costs of natural language processing at scale.
-        *   A Merchant Agent signals its support for text-based invocation for a specific skill by including an appropriate MIME type representing natural language (e.g., `text/plain`) in the `inputModes` array for that skill within its `AgentCard.skills` (or in `AgentCard.defaultInputModes` if applicable globally). If `text/plain` (or an equivalent MIME type) is not listed as a supported input mode for a skill, Client Agents **SHOULD** assume text-based invocation for that skill is not supported (see A2A-SPEC Section 5.5.4).
-        *   If a Merchant Agent receives an A2A `Message` containing only a `TextPart` intended for CAP skill invocation but does not support or cannot route this text-based request for the intended skill, it **SHOULD** respond with a standard A2A `JSONRPCError` with `code: -32005` (`ContentTypeNotSupportedError`), as defined in Section 8.2 of [A2A-SPEC]. The error's `data` field **MAY** provide additional context.
+        *   A Merchant Agent signals its support for text-based invocation for a specific skill by including an appropriate MIME type representing natural language (e.g., `text/plain`) in the `inputModes` array for that skill within its `skills` array (or in global defaults if applicable). If `text/plain` (or an equivalent MIME type) is not listed as a supported input mode for a skill, Client Agents **SHOULD** assume text-based invocation for that skill is not supported.
+        *   If a Merchant Agent receives an A2A `Message` containing only a `TextPart` intended for CAP skill invocation but does not support or cannot route this text-based request for the intended skill, it **SHOULD** respond with a standard A2A `JSONRPCError` with `code: -32005` (`ContentTypeNotSupportedError`), as defined in the [A2A-SPEC]. The error's `data` field **MAY** provide additional context.
 
 The interaction methods above are aimed at skill routing - skills are allowed to specify support for natural language text fields in their structured `DataPart` input specifications to augment their interaction.
 
@@ -210,7 +214,7 @@ The interaction methods above are aimed at skill routing - skills are allowed to
 
 **Example A2A Request to initiate `cap:product_search` (Direct Invocation):**
 
-This conceptual example uses the A2A `message/send` method. It assumes a `contextId` was generated from a previous interaction. Refer to [A2A-SPEC] Section 7.1 for the full `MessageSendParams` structure.
+This conceptual example uses the A2A `message/send` method. It assumes a `contextId` was generated from a previous interaction. Refer to [A2A-SPEC] for the full `MessageSendParams` structure.
 
 ```json
 {
@@ -245,12 +249,12 @@ This conceptual example uses the A2A `message/send` method. It assumes a `contex
 
 #### 4.2.2. Receiving Results and Artifacts
 
-The Merchant Agent (A2A Server) processes the A2A task. The results of the CAP Skill execution **MUST** be returned as A2A `Artifacts` (Section 6.7 of [A2A-SPEC]) within the A2A `Task` object (Section 6.1 of [A2A-SPEC]).
+The Merchant Agent (A2A Server) processes the A2A task. The results of the CAP Skill execution **MUST** be returned as A2A `Artifacts` within the A2A `Task` object as defined in the [A2A-SPEC].
 
-*   For successful CAP Skill invocations that produce data, the A2A `Task` object returned (or streamed via `TaskArtifactUpdateEvent` - Section 7.2.3 of [A2A-SPEC]) **SHOULD** contain at least one `Artifact`.
+*   For successful CAP Skill invocations that produce data, the A2A `Task` object returned (or streamed via `TaskArtifactUpdateEvent`) **SHOULD** contain at least one `Artifact`.
 *   This `Artifact` **MUST** contain a single `DataPart`.
 *   The `DataPart.data` field **MUST** be a JSON object representing the result of the CAP Skill, as defined for that skill in Section 5 (CAP Skills).
-*   The `Task.status.state` (Section 6.3 of [A2A-SPEC]) will indicate the outcome (e.g., `completed`, `failed`). If `failed`, error details should be provided as described in Section 6 (Error Handling).
+*   The `Task.status.state` will indicate the outcome (e.g., `completed`, `failed`). If `failed`, error details should be provided as described in Section 6 (Error Handling).
 
 **Example A2A `Task` Object as a Result (Conceptual):**
 
@@ -309,14 +313,14 @@ This shows a `Task` object that might be returned by `message/send` or `tasks/ge
 CAP interactions can be synchronous or asynchronous, leveraging A2A's capabilities:
 
 *   For quick operations, a Merchant Agent **MAY** process the task and return the final `Task` object (with state `completed` or `failed` and artifacts) directly in the response to a `message/send` request.
-*   For longer-running operations, or if the Client Agent requests it, Merchant Agents supporting streaming (`AgentCard.capabilities.streaming: true`) **SHOULD** use A2A's SSE streaming mechanism via the `message/stream` method. This allows for `TaskStatusUpdateEvent` and `TaskArtifactUpdateEvent`s to be sent as the task progresses.
+*   For longer-running operations, or if the Client Agent requests it, Merchant Agents supporting streaming **SHOULD** use A2A's SSE streaming mechanism via the `message/stream` method. This allows for `TaskStatusUpdateEvent` and `TaskArtifactUpdateEvent`s to be sent as the task progresses.
 *   Push notifications, if supported by the Merchant Agent and configured by the Client Agent (via `MessageSendParams.configuration.pushNotificationConfig` or `tasks/pushNotificationConfig/set` as per [A2A-SPEC]), can also be used for asynchronous updates.
 
 CAP itself does not add new streaming or push notification mechanisms beyond what A2A provides. Client Agents and Merchant Agents **MUST** follow the procedures in [A2A-SPEC] for these asynchronous patterns.
 
 #### 4.2.4. User Personalization Context
 
-CAP leverages the standard A2A `Task.contextId` (see Section 6.1 of [A2A-SPEC]) for enabling Merchant Agents to provide personalized experiences and maintain context continuity across multiple interactions with a Client Agent for a specific user. The `contextId` is generated by the Merchant Agent (A2A Server). This feature is aimed at supporting personalization of pre-sign-in interactions such as "guest" product search and product details, avoiding the need for OAuth2 sign-in for many interactions.
+CAP leverages the standard A2A `Task.contextId` for enabling Merchant Agents to provide personalized experiences and maintain context continuity across multiple interactions with a Client Agent for a specific user. The `contextId` is generated by the Merchant Agent (A2A Server). This feature is aimed at supporting personalization of pre-sign-in interactions such as "guest" product search and product details, avoiding the need for OAuth2 sign-in for many interactions.
 
 **Establishing and Using Personalization Context:**
 
@@ -421,9 +425,9 @@ This group of skills allows Client Agents to manage user-consented preferences a
 
 ## 6. Error Handling
 
-When an CAP Skill invocation results in an error, the A2A Task processing the skill **MUST** indicate this failure through the standard A2A mechanisms, primarily by setting the `Task.status.state` to `\"failed\"` (see Section 6.3 of [A2A-SPEC]).
+When an CAP Skill invocation results in an error, the A2A Task processing the skill **MUST** indicate this failure through the standard A2A mechanisms, primarily by setting the `Task.status.state` to `\"failed\"`.
 
-Further details about the CAP-specific error **MUST** be provided within the `Task.status.message` field (which is an A2A `Message` object, as per Section 6.4 of [A2A-SPEC]). This message **SHOULD** contain a single A2A `DataPart` (Section 6.5.3 of [A2A-SPEC]) structured as follows:
+Further details about the CAP-specific error **MUST** be provided within the `Task.status.message` field (which is an A2A `Message` object). This message **SHOULD** contain a single A2A `DataPart` structured as follows:
 
 ```json
 {
@@ -520,7 +524,7 @@ Security is fundamental to the trust and reliability of CAP interactions. This s
 CAP's authentication model is built upon the mechanisms defined in the [Agent2Agent (A2A) Protocol Specification][A2A-SPEC] (see Section 4 of [A2A-SPEC]). Key principles include:
 
 *   **Transport Security:** All CAP communication **MUST** occur over HTTPS.
-*   **Declared Schemes:** Merchant Agents **MUST** declare their supported authentication schemes in their A2A Agent Card (specifically in the `securitySchemes` and `security` fields, as per A2A-SPEC Section 5.5 and CAP Section 4.1.4). CAP **RECOMMENDS** the use of OpenID Connect (OIDC) as the primary authentication scheme.
+*   **Declared Schemes:** Merchant Agents **MUST** declare their supported authentication schemes in their A2A AgentCard (specifically in the `authentication` field, as per [A2A-SPEC] and CAP Section 4.1.4). CAP **RECOMMENDS** the use of OpenID Connect (OIDC) as the primary authentication scheme.
 *   **Client Authentication:** For skills requiring authentication, Client Agents **MUST** include appropriate credentials (e.g., a valid Bearer token in `Authorization` header, a valid key in `X-API-Key`) with their requests, as per the merchant's declared schemes. Merchant Agents **MUST** authenticate these requests.
 
 #### 8.1.1. Publicly Accessible Skills
@@ -529,10 +533,10 @@ While many CAP skills involve sensitive operations or user data and thus require
 
 To accommodate this, CAP defines the following convention:
 
-*   An CAP Skill **MAY** be designated as publicly accessible if it includes the tag `auth:public` within the `tags` array of its `AgentSkill` object definition in the Merchant Agent's A2A Agent Card. (The `AgentSkill` object and its `tags` array are defined in Section 5.5.4 of [A2A-SPEC]).
+*   An CAP Skill **MAY** be designated as publicly accessible if it includes the tag `auth:public` within the `tags` array of its skill definition in the Merchant Agent's A2A AgentCard.
 *   Merchant Agents **SHOULD** accept and process requests invoking an CAP Skill tagged `auth:public` without requiring an `Authorization` header or other forms of client authentication.
-*   If an CAP Skill is **NOT** tagged with `auth:public`, or if the tag is absent, it **MUST** require authentication. In such cases, Merchant Agents **MUST** enforce the authentication requirements declared in their A2A Agent Card, as per standard A2A protocol behavior (see Section 4 of [A2A-SPEC]), and **MUST** reject unauthenticated or improperly authenticated requests accordingly.
-*   Client Agents, before attempting an unauthenticated request to an CAP Skill, **SHOULD** inspect the skill's definition in the Merchant Agent's Agent Card to check for the presence of the `auth:public` tag.
+*   If an CAP Skill is **NOT** tagged with `auth:public`, or if the tag is absent, it **MUST** require authentication. In such cases, Merchant Agents **MUST** enforce the authentication requirements declared in their A2A AgentCard, as per standard A2A protocol behavior, and **MUST** reject unauthenticated or improperly authenticated requests accordingly.
+*   Client Agents, before attempting an unauthenticated request to an CAP Skill, **SHOULD** inspect the skill's definition in the Merchant Agent's AgentCard to check for the presence of the `auth:public` tag.
 
 Even for skills marked `auth:public`, Merchant Agents **SHOULD** implement appropriate measures to protect against abuse, such as rate limiting and traffic analysis.
 
@@ -587,13 +591,13 @@ CAP can be extended in several ways:
 
 ### 9.2. Declaring Additional Custom Skills
 
-Merchant Agents **MAY** expose additional, custom CAP Skills or other A2A tasks not defined in this core specification by declaring them in their A2A Agent Card (within the `skills` array, as per A2A-SPEC Section 5.5.4).
+Merchant Agents **MAY** expose additional, custom CAP Skills or other A2A tasks not defined in this core specification by declaring them in their A2A AgentCard (within the `skills` array).
 
-*   **Client Agent Behavior:** Client Agents encountering unknown skill IDs in an Agent Card **MAY** ignore them if they are not programmed to handle them.
+*   **Client Agent Behavior:** Client Agents encountering unknown skill IDs in an AgentCard **MAY** ignore them if they are not programmed to handle them.
 *   **Merchant Agent Responsibilities for Custom Skills:** For effective discovery and utilization of custom skills, Merchant Agents **SHOULD**:
-    1.  Provide clear and comprehensive documentation for these custom skills. This documentation **SHOULD** be accessible, for instance, via the `documentationUrl` field in their `AgentCard` or provided in the skill's `description` field.
+    1.  Provide clear and comprehensive documentation for these custom skills. This documentation **SHOULD** be accessible, for instance, via the `documentationUrl` field in their AgentCard or provided in the skill's `description` field.
     2.  Understand that the adoption and successful use of complex or highly specialized custom skills may require direct engagement or communication with Client Agent developers or providers.
-*   **Scope in `draft-01`:** This version of CAP primarily focuses on standardizing core e-commerce operations. The mechanisms for broad, automated discovery and negotiation of purely custom skills beyond their declaration in the Agent Card are considered out of scope for this version and may rely on bilateral agreements or future community-developed conventions.
+*   **Scope in `draft-01`:** This version of CAP primarily focuses on standardizing core e-commerce operations. The mechanisms for broad, automated discovery and negotiation of purely custom skills beyond their declaration in the AgentCard are considered out of scope for this version and may rely on bilateral agreements or future community-developed conventions.
 
 ### 9.3. Extending Standard CAP Skills
 
@@ -618,7 +622,7 @@ Organizations interested in contributing to the CAP standard, particularly by pr
 *(Placeholder for extensions, payment flows, advanced features, and skill versioning strategies.)*
 
 ## 11. References
-- **[A2A-SPEC]** Google, "Agent2Agent (A2A) Protocol Specification", Version 0.2.1 (or latest). URL: [https://google.github.io/A2A/specification/](https://google.github.io/A2A/specification/)
+- **[A2A-SPEC]** Google, "Agent2Agent (A2A) Protocol Specification", Version 0.2.6 (or latest). URL: [https://a2a-protocol.org/latest/specification/](https://a2a-protocol.org/latest/specification/)
 - **[RFC 2119]** Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997.
 - **[RFC 8141]** Saint-Andre, P. and J. Klensin, "Uniform Resource Names (URNs)", RFC 8141, DOI 10.17487/RFC8141, April 2017. URL: [https://tools.ietf.org/html/rfc8141](https://tools.ietf.org/html/rfc8141)
 - **[RFC 6585]** Nottingham, M., and R. Fielding, "Additional HTTP Status Codes", RFC 6585, DOI 10.17487/RFC6585, April 2012. URL: [https://tools.ietf.org/html/rfc6585](https://tools.ietf.org/html/rfc6585)
@@ -626,7 +630,7 @@ Organizations interested in contributing to the CAP standard, particularly by pr
 - **[IANA Time Zone Database]** Internet Assigned Numbers Authority, "Time Zone Database". URL: [https://www.iana.org/time-zones](https://www.iana.org/time-zones)
 - **[ISO 4217]** International Organization for Standardization, "Codes for the representation of currencies". URL: [https://www.iso.org/iso-4217-currency-codes.html](https://www.iso.org/iso-4217-currency-codes.html)
 
-[A2A-SPEC]: https://google-a2a.github.io/A2A/specification/
+[A2A-SPEC]: https://a2a-protocol.org/latest/specification/
 [RFC 2119]: https://www.rfc-editor.org/info/rfc2119
 [RFC 8141]: https://www.rfc-editor.org/info/rfc8141
 [RFC 6585]: https://tools.ietf.org/html/rfc6585

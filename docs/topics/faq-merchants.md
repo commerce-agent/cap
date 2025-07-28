@@ -37,6 +37,7 @@ Section 4.2.4 states that if a `contextId` is provided alongside a valid OAuth 2
 While CAP `draft-01` doesn't set strict millisecond-level performance metrics, the protocol incorporates several design features to support high-performance and scalable e-commerce interactions:
 
 **Efficient Interaction Modes & AI Cost Management:** CAP primarily promotes **Direct Skill Invocation** (Section 4.2.1 of the CAP Specification). This offers REST-like, structured interactions that do not inherently rely on expensive LLM-based Natural Language Understanding (NLU) for routing on the merchant side, allowing for "cheaper" and faster request processing.
+
 * "Smart" NLU-based capabilities (**Text-based Skill Invocation**) are optional.
 * To manage the costs and scalability of AI components, Merchant Agents **MAY**:
     * Opt-out of supporting text-based invocation for some/all skills (signaled by not including `text/plain` in `inputModes`).
