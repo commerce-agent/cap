@@ -38,17 +38,17 @@ The Commerce Agent Protocol (CAP) is designed to achieve the following primary g
 
 - **Achieve Broad E-commerce Interoperability:** To enable personal AI agents to seamlessly interact with any CAP-compliant merchant for e-commerce tasks through a common, standardized interface.
 - **Define Standardized Commerce Operations:** To provide clear, unambiguous definitions for common e-commerce operations (e.g., product search, cart management), including their required inputs and expected outputs, using a consistent data exchange format.
-- **Facilitate Merchant Discovery:** To provide a consistent mechanism for AI agents to discover CAP-compliant merchants and their specific e-commerce capabilities through a standard declaration format.
+- **Facilitate Merchant and Product Discovery:** To provide a consistent mechanism for AI agents to discover CAP-compliant merchants, their offers and agent e-commerce capabilities through a standard declaration format.
 - **Simplify Commerce Integration for Agents:** To streamline the development of e-commerce functionalities in AI agents by abstracting merchant-specific complexities behind a uniform set of CAP-defined operations.
 - **Ensure Secure Transactions:** To promote secure e-commerce interactions by establishing clear guidelines for secure communication and authentication.
-- **Foster an Open Commercial Ecosystem:** To cultivate a level playing field and enhance consumer choice by simplifying how AI agents discover and connect with a diverse array of merchants through an open protocol.
+- **Foster an Open Commerce Ecosystem:** To cultivate a level playing field and enhance consumer choice by simplifying how AI agents discover and connect with a diverse array of merchants through an open protocol.
 - **Support Flexible Extensibility:** To allow merchants to complement standard CAP capabilities by offering additional, clearly declared functionalities alongside the core operations.
 
 ### 1.3. Scope
 #### 1.3.1. In-scope
 The current version of CAP encompasses the following:
 
--   Guidelines on how to discover merchants, products, and how it relates with existing world-wide web ecosystem.
+-   Guidelines on how to discover merchants, products, and how it relates with existing World Wide Web search ecosystem.
 -   Definition of how merchants declare their CAP e-commerce capabilities using AgentCards.
 -   Requirements for secure authentication and authorization for CAP interactions.
 -   Definition of how to share user preferences and transmit user consent for personalization. 
