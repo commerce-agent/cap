@@ -6,7 +6,7 @@ hide:
 # Commerce Agent Protocol (CAP) Specifications
 
 **Version**: `draft-01` <br/>
-**Date**: `{{YYYY-MM-DD}}`<br/>
+**Date**: `2025-08-11`<br/>
 **Status**: Editor's Draft<br/>
 **Editors:** Cloves Almeida - Boston Consulting Group
 
@@ -52,7 +52,7 @@ The current version of CAP encompasses the following:
 -   Definition of how merchants declare their CAP e-commerce capabilities using AgentCards.
 -   Requirements for secure authentication and authorization for CAP interactions.
 -   Definition of how to share user preferences and transmit user consent for personalization. 
--   Specification of standard CAP e-commerce operations (e.g., product search, price/inventory query, cart management, checkout, order status, and product retrieval).
+-   Specification of standard CAP e-commerce operations (e.g., product search, product retrieval with inventory data, cart management, and order status).
 -   The method by which AI agents specify the desired CAP operation when initiating a request.
 -   Definition of the data structures for requests and responses for each CAP operation.
 -   Standardized patterns for reporting success and errors for CAP operations.
@@ -64,7 +64,7 @@ The current version of CAP explicitly excludes:
 -   The internal logic, decision-making processes, or ranking algorithms of Client Agents or Merchant Agents when returning results to users.
 -   Monetization aspects, revenue sharing models, or commercial agreements between Client Agent providers and Merchant Agents.
 -   Specifics of merchant back-end data storage, schemas, or internal business logic beyond the defined CAP task interfaces.
--   Detailed integration mechanics with specific payment gateways, focusing instead on the data exchange and hand-off points within the `cap:checkout` task.
+-   Payment processing and checkout flows, which are considered future enhancements beyond the scope of `draft-01`.
 -   Prescriptive guidance on user interface (UI) or user experience (UX) design for Client Agents or merchant systems.
 
 
@@ -142,27 +142,29 @@ CAP Merchant Agents are discovered by Client Agents through their **Capabilities
 CAP supports two deployment models:
 
 *   A Merchant Agent **MAY** expose CAP Skills as part of a larger, consolidated A2A service endpoint (an "A2A Gateway") that handles multiple types of A2A tasks for a domain. In this model, CAP Skills are distinguished by their `cap:` prefixed `id`s within a shared AgentCard.
-*   Alternatively, an CAP Merchant Agent **MAY** operate as a standalone A2A service with its own dedicated AgentCard and A2A service endpoint, focused solely on CAP Skills.
+*   Alternatively, a CAP Merchant Agent **MAY** operate as a standalone A2A service with its own dedicated AgentCard and A2A service endpoint, focused solely on CAP Skills.
 
-To ensure robust discovery, Crawlers indexing Merchant Agents and Client Agents seeking an CAP Merchant Agent for a given `{merchant-domain}` **SHOULD** attempt to locate its A2A AgentCard. The first successfully retrieved and validated A2A AgentCard that declares CAP support (as per [Section 4.1.4](#414-cap-requirements-for-the-agentcard)) **SHOULD** be used, according to the following resolution order:
+To ensure robust discovery, Crawlers indexing Merchant Agents and Client Agents seeking a CAP Merchant Agent for a given `{merchant-domain}` **SHOULD** attempt to locate its A2A AgentCard. The first successfully retrieved and validated A2A AgentCard that declares CAP support (as per [Section 4.4](#44-cap-requirements-for-the-agentcard)) **SHOULD** be used, according to the following resolution order:
 
-1.  **CAP DNS TXT Record for Manifest URL (RECOMMENDED for specific CAP endpoint discovery):**
-    Client Agents **SHOULD** first query for a DNS TXT record at the hostname `_cap.{merchant-domain}`. This method allows merchants to directly specify the URL (potentially including a subpath) of the A2A AgentCard most relevant for CAP interactions.
-2.  **CAP HTML Link Tag Discovery (OPTIONAL):**
+1.  **CAP DNS TXT Record for Manifest URL:**
+    Client Agents **SHOULD** query for a DNS TXT record at the hostname `_cap.{merchant-domain}`. This method allows merchants to directly specify the URL (potentially including a subpath) of the A2A AgentCard most relevant for CAP interactions.
+2.  **CAP HTML Link Tag Discovery:**
     If interacting with an HTML page from the `{merchant-domain}` (e.g., a homepage or product page), Client Agents **MAY** parse the HTML for a `<link rel="cap-agent-card" href="...">` tag to find the A2A AgentCard.
-3.  **General A2A Well-Known URI (OPTIONAL):**
-    As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's AgentCard via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in the [A2A-SPEC]).
+3.  **General A2A Well-Known URI:**
+    As a general A2A discovery mechanism or fallback, Client Agents **MUST** attempt to locate a Merchant Agent's AgentCard via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in the [A2A-SPEC]).
+
+Client Agents and Crawlers **MUST** use at least the "3. General A2A Well-Known URI" method discover Merchant AgentCards. To improve discoverability, Merchants **SHOULD** implement all methods, though it's expected only the mandatory "3. General A2A Well-Known URI" may be implemented for a dedicated e-commerce `{merchant-domain}`.
 
 ### 4.1. CAP DNS TXT Record for Manifest URL
 
 *   Merchant Agents choosing to use this discovery method **MUST** publish a DNS TXT record at the hostname `_cap.{merchant-domain}`.
 *   This TXT record **MUST** contain a single string value that is the absolute HTTPS URL of the Merchant Agent's A2A AgentCard (e.g., `"https://example.com/store/.well-known/agent.json"`). Key-value formats (like `cap-agent-card-url=...`) **SHOULD NOT** be used for this specific TXT record; the value itself **MUST** be the URL.
 *   Merchants **SHOULD NOT** publish multiple TXT records at the `_cap.{merchant-domain}` hostname for CAP discovery. If multiple records are present, Client Agents and Crawlers **MAY** process only the first one retrieved that contains a valid HTTPS URL.
-*   Client Agents and Crawlers **MAY** query for this TXT record. If found and valid, they would then fetch the A2A AgentCard from the extracted URL.
+*   Client Agents and Crawlers **SHOULD** query for this TXT record. If found and valid, they would then fetch the A2A AgentCard from the extracted URL.
 
 ### 4.2. CAP HTML Link Tag Discovery
 
-*   If a Client Agent or Crawler interacts with an HTML page on the `{merchant-domain}` and has not yet discovered an AgentCard via prior methods, it **MAY** parse the HTML for a `<link>` tag to discover the location of an CAP-relevant A2A AgentCard.
+*   If a Client Agent or Crawler interacts with an HTML page on the `{merchant-domain}` and has not yet discovered an AgentCard via prior methods, it **MAY** parse the HTML for a `<link>` tag to discover the location of a CAP-relevant A2A AgentCard.
 *   The link tag **SHOULD** be: `<link rel="cap-agent-card" href="<URL_to_AgentCard>">`.
     *   The `href` attribute **MUST** be an absolute HTTPS URL or a root-relative path pointing directly to a valid A2A AgentCard (e.g., `https://example.com/store/.well-known/agent.json` or `/custom-path/agent.json`).
 *   Client Agents finding this link **SHOULD** then fetch the A2A AgentCard from the specified `href`.
@@ -170,12 +172,12 @@ To ensure robust discovery, Crawlers indexing Merchant Agents and Client Agents 
 ### 4.3. General A2A Discovery: Well-Known URI
 
 *   As a general A2A discovery mechanism or fallback, Client Agents **MAY** attempt to locate a Merchant Agent's AgentCard via the standard A2A well-known URI: `https://{merchant-domain}/.well-known/agent.json` (as defined in the [A2A-SPEC]).
-*   For CAP, any A2A AgentCard retrieved via this method (or any other) **MUST** still declare CAP Skills as specified in [Section 4.1.4](#414-cap-requirements-for-the-agentcard) to be considered an CAP-compliant endpoint.
+*   For CAP, any A2A AgentCard retrieved via this method (or any other) **MUST** still declare CAP Skills as specified in [Section 4.4](#44-cap-requirements-for-the-agentcard) to be considered a CAP-compliant endpoint.
 *   Per current [A2A-SPEC], it's not possible to use a single AgentCard to specify multiple JSON-RPC endpoints, thus both CAP and non-CAP skills, if they exist, must be supported in the declared endpoint.
 
 ### 4.4. CAP Requirements for the AgentCard
 
-The Capabilities Manifest for an CAP Merchant Agent, which is an A2A AgentCard, **MUST** adhere to the structure and requirements outlined in the [A2A-SPEC]. In addition, for CAP conformance:
+The Capabilities Manifest for a CAP Merchant Agent, which is an A2A AgentCard, **MUST** adhere to the structure and requirements outlined in the [A2A-SPEC]. In addition, for CAP conformance:
 
 -   It **MUST** declare supported CAP Skills within the `skills` array. Each declared CAP Skill **MUST** have an `id` field prefixed with `cap:` (e.g., `"id": "cap:product_get"`).
 -   It **MUST** accurately declare all necessary authentication requirements (particularly `authentication` field) to enable Client Agents to interact with the declared CAP Skills.
@@ -184,62 +186,50 @@ The Capabilities Manifest for an CAP Merchant Agent, which is an A2A AgentCard, 
 
 **CAP Support Detection:**
 
-Client Agents **SHOULD** determine CAP support by checking for the presence of the CAP extension (`https://cap-spec.org`) in the AgentCard's `capabilities.extensions` array. If the extension is present, the merchant supports CAP and Client Agents **MAY** use the declared parameters to optimize interactions. If the extension is absent, Client Agents **MAY** still attempt to use CAP skills but should assume baseline functionality only.
+Client Agents **SHOULD** determine CAP support by checking for the presence of the CAP extension (`https://cap-spec.org`) in the AgentCard's `capabilities.extensions` array. If the extension is present, the merchant supports CAP and Client Agents **SHOULD** use the declared parameters to optimize interactions. If the extension is absent, Client Agents **SHOULD NOT** assume any CAP compliant functionality, and treat the agent as a generic A2A server.
 
 ### 4.5 CAP Categories and Catalog Files
 
 Merchants **MAY** provide a LLM-friendly `categories.txt` file with a description of the product categories it offers. Client Agents may find the `categories.txt` file under `https://{merchant-domain}/.well-known/cap/categories.txt` (registration pending).
 
-The specific format of `categories.txt` is not specified, but it's recommended to be [Markdown], with MIME-type `text/markdown` or plain-text (`text/plain`)
+This file **SHOULD** be designed to fit within the context of a LLM The specific format of `categories.txt` is not specified, but it's recommended to be [Markdown] based, with MIME-type `text/markdown` or plain-text (`text/plain`). 
 
-## 5. Product Discovery
+## 5. Product Discovery and Semantics
 
-To facilitate a direct transition to an CAP interaction for a specific product found on a merchant's website without extra network round-trips, and to enable automated systems like web crawlers to accurately identify products, CAP leverages existing SEO practices and **RECOMMENDS** that product details and identifiers be discoverable directly from a Product Description Page (PDP). The discovered identifier can then be used to directly construct or reference a canonical CAP Product URN for use in CAP Skills.
+This section covers the mechanisms by which Client Agents discover products and the semantic structures used to enhance product information for better interoperability. Product discovery encompasses both selecting relevant merchants and their products, while semantic markup ensures consistent interpretation of product characteristics, offers, and promotional information across the CAP ecosystem.
 
-### 5.1. Product discovery from web pages
+The combination of discovery mechanisms and semantic standards enables Client Agents to not only locate relevant products but also understand their attributes, pricing, availability, and promotional characteristics in a standardized way that facilitates comparison and decision-making.
 
-1.  **Schema.org Structured Data (RECOMMENDED Primary Method):**
+### 5.1. Product Discovery Mechanisms
 
-    *   Merchants **SHOULD** embed comprehensive [Schema.org/Product](https://schema.org/Product) structured data on their product pages. This structured data **MUST** be provided using JSON-LD within a `<script type="application/ld+json">` block.
-    *   This structured data **SHOULD** include at least one of the standard unique identifier properties for the product.
-    *   Client Agents and Crawlers **SHOULD** prioritize parsing this `schema.org/Product` data to find a suitable identifier. If multiple identifier properties are present (e.g., `productID`, `sku`, `gtin`, etc.), Client Agents **SHOULD** use the following order of precedence to select the value for constructing the CAP Product URN (e.g., `urn:Product:<property>:<value>`):
-        1.  `productID`
-        2.  `identifier` (if distinct from `productID` and more specific)
-        3.  `sku`
-        4.  `gtin14`
-        5.  `gtin13`
-        6.  `gtin12`
-        7.  `gtin8`
-        8.  `gtin` (if a more specific `gtin<length>` is not available)
-        9.  `asin`
-        10. `mpn`
-    *   To minimize ambiguity, it is **STRONGLY RECOMMENDED** that merchants ensure their `schema.org/Product` structured data includes a `productID` property with a stable, unique, and directly usable value.
-    *   If a suitable identifier value is found, the Client Agent **MAY** construct an CAP Product URN using the corresponding `schema.org` property name as the URN `<property>` (e.g., `urn:Product:sku:<value>`, `urn:Product:productID:<value>`).
+To facilitate a direct transition to a CAP interaction for a specific product found on a merchant's website without extra network round-trips, and to enable automated systems like web crawlers to accurately identify products, CAP leverages existing SEO practices and **RECOMMENDS** that product details and identifiers be discoverable directly from a Product Description Page (PDP). The discovered identifier can then be used directly as a product identifier for use in CAP Skills.
 
-2.  **CAP Product ID Link Tag (OPTIONAL Fallback / Explicit Declaration):**
+#### 5.1.1. Product discovery from web pages
 
-    *   As a fallback, or for merchants wishing to explicitly declare a specific canonical identifier for CAP use (which might differ from or clarify identifiers in Schema.org), Merchants **MAY** embed a `<link>` tag in the `<head>` of their product pages.
-    *   The link tag **MUST** be: `<link rel="cap-product-id" href="<product_identifier_string>">`.
-    *   The `href` attribute **MAY** contain:
-        *   A full CAP Product URN: Following the format `urn:Product:<property>:<value>`, where `<property>` **SHOULD** be one of the standard unique identifier property names defined for [`Product` in Schema.org](https://schema.org/Product) (e.g., `sku`, `gtin`, `productID`, `identifier`) and `<value>` is the product's corresponding ID.
-        *   A non-URN prefixed string: If the `href` value is not a URN, Client Agents **SHOULD** interpret this string as the `<value>` part of an implicit `urn:Product:productID:<value>` URN.
-    *   Example: `<link rel="cap-product-id" href="urn:Product:sku:XYZ789">` or `<link rel="cap-product-id" href="PROD456">`.
-    *   If both Schema.org data and an `cap-product-id` link tag are present, Client Agents **MAY** prioritize the identifier from the `cap-product-id` link tag as it represents a more explicit declaration for CAP purposes.
+**1. Schema.org Structured Data:**
 
-Regardless of how a product identifier string or URN is obtained from a web page, Merchant Agents providing the `cap:product_get` CAP Skill (and other skills accepting a product identifier) **MUST** be prepared to accept this identifier. If the identifier is not already in the canonical CAP Product URN format used internally by the Merchant Agent, the Merchant Agent **SHOULD** attempt to normalize it to its canonical URN.
+Merchants **SHOULD** embed comprehensive [Schema.org/Product](https://schema.org/Product) structured data on their product pages using JSON-LD within a `<script type="application/ld+json">` block. This structured data **MUST** provide at least one of the standard unique identifier properties: `productID`, `identifier`, or `sku`.
 
-#### 5.1.1 Robots and Provenance
+Client Agents and Crawlers **SHOULD** prioritize parsing this `schema.org/Product` data to find a suitable identifier, using the following order of precedence: (1) `productID`, (2) `identifier`, (3) `sku`. The selected identifier value **SHOULD** be used as-is as the product identifier for CAP operations.
+
+**2. CAP Product ID Link Tag (Optional):**
+
+As a fallback or for explicit CAP identifier declaration, Merchants **MAY** embed a `<link rel="cap-product-id" href="<product_identifier_string>">` tag in the `<head>` of their product pages. The `href` attribute **SHOULD** contain the product identifier as a simple string (e.g., `<link rel="cap-product-id" href="XYZ789">`). If both Schema.org data and a `cap-product-id` link tag are present, Client Agents **MAY** prioritize the link tag identifier as it represents a more explicit CAP declaration.
+
+Regardless of discovery method, Merchant Agents providing the `cap:product_get` CAP Skill **MUST** be prepared to accept these identifiers as-is. The format is opaque to Client Agents, and Merchant Agents handle any necessary internal identifier normalization.
+
+#### 5.1.3. Robots and Provenance
 
 - Crawlers **MUST** identify themselves via a clear `User-Agent` and **MUST** comply with `robots.txt` [RFC 9309] exclusion directives.
 - Only publicly accessible content **SHOULD** be indexed. Circumventing authentication, paywalls, or technical access controls is **PROHIBITED**.
 - Index entries **SHOULD** retain provenance metadata: source URL, retrieval timestamps, HTTP status, content hash, and the AgentCard URL of the merchant when available.
 
 
-#### 5.2. Product Discovery via Delegated Search (`cap:product_search`)
+#### 5.1.3. Product Discovery via Delegated Search (`cap:product_search`)
 
 This section provides guidelines for Client Agents on how to discover products by delegating search queries to one or more Merchant Agents using the `cap:product_search` skill. This process involves selecting merchants, forming and sending queries, and processing the returned results.
 
-##### 5.2.1. Merchant Selection
+##### 5.1.3.1. Merchant Selection
 
 Before initiating a search, a Client Agent **SHOULD** identify a set of candidate Merchant Agents. This selection process **SHOULD** be guided by:
 
@@ -248,7 +238,7 @@ Before initiating a search, a Client Agent **SHOULD** identify a set of candidat
 -   **Merchant Capabilities:** Assess the merchant's category coverage and shipping support.
 -   **Authentication:** When the user is not authenticated, Clients **MAY** favor merchants that declare `auth:public` access for `cap:product_search` (see Section 8.1.1) to allow for unauthenticated searches.
 
-##### 5.2.2. Query Formulation
+##### 5.1.3.2. Query Formulation
 
 Once merchants are selected, the Client Agent **MUST** translate the user's intent into a `cap:product_search` request for each merchant.
 
@@ -276,14 +266,14 @@ Before formulating the query, Client Agents **SHOULD** inspect the merchant's Ag
 
 Merchant Agents **MAY** interpret the `query` and `filter` flexibly to provide optimal results, including gracefully ignoring malformed or unsupported filter expressions.
 
-##### 5.2.3. Handling Personalization
+##### 5.1.3.3. Handling Personalization
 
 To provide a personalized search experience, Client Agents **SHOULD** manage user context.
 
 -   **Using `contextId`:** If a `contextId` has been established from a previous interaction with a merchant (see Section 6.4), the Client Agent **SHOULD** include it in the `A2A.Message.contextId` field to ensure consistent, personalized results.
 -   **Setting Preferences:** To apply user preferences (e.g., for data usage consent), the Client Agent **SHOULD** invoke `cap:user_preferences_set` before or during the first search request to a given merchant (see Section 7.5.1).
 
-##### 5.2.4. Executing Search and Processing Results
+##### 5.1.3.4. Executing Search and Processing Results
 
 Client Agents often need to query multiple merchants simultaneously (fan-out) and combine the results.
 
@@ -294,33 +284,116 @@ Client Agents often need to query multiple merchants simultaneously (fan-out) an
     -   Avoid de-duplicating products across merchants unless they share a globally unique identifier (e.g., a GTIN).
     -   Consider interleaving strategies (e.g., round-robin) to present a balanced list of results to the user. Client-side ranking heuristics are out of the scope of this specification.
 
-##### 5.2.5. Error and Rate Limit Handling
+##### 5.1.3.5. Error and Rate Limit Handling
 
 -   **A2A-Level Errors:** If a request to a merchant fails at the A2A protocol level, the Client Agent **SHOULD** skip that merchant for the current search cycle and **MAY** proceed with partial results from other merchants.
 -   **Rate Limiting:** If a Merchant Agent responds with an HTTP `429 Too Many Requests` status code or a `CAP_RATE_LIMIT_EXCEEDED` error, the Client **MUST** respect the rate limit. It **SHOULD** apply an exponential backoff strategy for that specific merchant and **MUST** honor the `Retry-After` header if present (see Section 8.1.2).
 -   **CAP-Specific Errors:** Application-level errors returned in the `Task.status.message` (see Section 6) **SHOULD** be logged for diagnostics, using the provided `capErrorCode`.
 
-##### 5.2.6. Caching
+##### 5.1.3.6. Caching
 
 -   Responses to `cap:product_search` **MAY** be cached by Client Agents, subject to merchant terms.
 -   Cache keys **SHOULD** be comprehensive, including the merchant identifier, `query`, `queryMode`, `filter`, `limit`, `offset`, and any relevant internationalization parameters (locale, currency).
 -   If results are personalized (associated with a `contextId`), they **MUST NOT** be cached and reused for different users or contexts.
 
-##### 5.2.7. Internationalization
+##### 5.1.3.7. Internationalization
 
 -   Client Agents **SHOULD** ensure that search requests align with the user's language and currency preferences. These preferences can be conveyed via `cap:user_preferences_set` or inferred by the Merchant Agent from the `contextId`.
 -   Queries **MAY** be translated to a merchant's locale, but numeric constraints in the `filter` expression **SHOULD NOT** be altered.
 
-##### 5.2.8. Security and Privacy
+##### 5.1.3.8. Security and Privacy
 
 -   Personally Identifiable Information (PII) **MUST NOT** be included in the `query` or `filter` strings. User-consented data for personalization **SHOULD** be handled via `cap:user_preferences_set`.
 -   Unauthenticated requests to `cap:product_search` **SHOULD** only be made if the skill is explicitly marked as `auth:public` in the merchant's AgentCard. Otherwise, the Client Agent **MUST** authenticate as per the merchant's declared requirements (see Section 8.1).
 
+### 5.2. Standard Offers and Promotional Semantics
+
+To enable consistent interpretation of promotional offers across the CAP ecosystem, merchants **MAY** use Standard Offers - predefined promotional patterns identified by standardized URNs. Standard Offers provide a machine-readable way to communicate common promotional types (such as "Buy One Get One" or percentage discounts) while maintaining human-readable descriptions.
+
+#### 5.2.1. Standard Offer URN Format
+
+Standard Offers are identified using URNs in the format:
+```
+urn:cap:StandardOffer:<code>
+```
+
+Where `<code>` is a standardized identifier for a specific promotional pattern. Examples include:
+- `urn:cap:StandardOffer:BOGO50` - Buy one, get one 50% off
+- `urn:cap:StandardOffer:BTGOF` - Buy two, get one free
+- `urn:cap:StandardOffer:PCT20` - 20% off
+
+The complete list of Standard Offer codes is maintained in an external registry located at: `https://cap-spec.org/registry/standard-offers/` (registration pending).
+
+#### 5.2.2. Implementation with Schema.org
+
+Standard Offers are implemented by adding the Standard Offer URN to the `additionalType` property of schema.org `Offer` objects. This approach leverages existing schema.org semantics while providing enhanced promotional categorization.
+
+**Basic Implementation:**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Widget 3000",
+  "offers": {
+    "@type": "Offer",
+    "price": "29.99",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "additionalType": "urn:cap:StandardOffer:BOGO50",
+    "description": "Buy one, get one 50% off (coupon BOGO50)."
+  }
+}
+```
+
+**Implementation with CAP Prefix:**
+```json
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "cap": "urn:cap:"
+  },
+  "@type": "Product",
+  "name": "Gizmo 9000",
+  "offers": {
+    "@type": "Offer",
+    "price": "49.00",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "additionalType": "cap:StandardOffer:BTGOF",
+    "description": "Buy two, get one free."
+  }
+}
+```
+
+#### 5.2.3. Client Agent Processing
+
+Client Agents encountering Standard Offer URNs **SHOULD**:
+1. **Cache Registry Data**: Periodically fetch and cache the Standard Offers registry for performance
+2. **Graceful Fallback**: Use the human-readable `description` field when encountering unknown Standard Offer codes
+3. **Semantic Enhancement**: Leverage Standard Offer semantics for improved comparison and recommendation logic
+
+#### 5.2.4. Merchant Implementation Guidelines
+
+Merchants implementing Standard Offers **SHOULD**:
+1. **Use Exact URNs**: Reference the official Standard Offers registry for correct URN usage
+2. **Maintain Descriptions**: Always provide clear, human-readable `description` fields alongside Standard Offer codes
+3. **Consistent Application**: Apply the same Standard Offer code consistently across equivalent promotional offers
+4. **Analytics Integration**: Consider exposing Standard Offer codes to analytics platforms and tag managers for promotional tracking
+
+#### 5.2.5. Registry Maintenance and Governance
+
+The Standard Offers registry is maintained independently of this specification to allow for:
+- **Community-Driven Growth**: New Standard Offers can be proposed and added without specification updates
+- **Rapid Iteration**: Promotional patterns can evolve based on market needs
+- **Stable References**: Existing Standard Offer codes maintain consistent semantics over time
+
+Proposals for new Standard Offers should be submitted through the governance process documented at the registry location.
+
 ## 6. Interaction Model (A2A)
 
-All interactions between a Client Agent and an CAP Merchant Agent **MUST** be performed by invoking A2A Tasks, as defined in the [A2A-SPEC]. CAP leverages A2A's JSON-RPC 2.0 based methods for initiating tasks, sending messages, and retrieving results.
+All interactions between a Client Agent and a CAP Merchant Agent **MUST** be performed by invoking A2A Tasks, as defined in the [A2A-SPEC]. CAP leverages A2A's JSON-RPC 2.0 based methods for initiating tasks, sending messages, and retrieving results.
 
-### 6.1. Initiating an CAP Skill as an A2A Task
+### 6.1. Initiating a CAP Skill as an A2A Task
 
 To invoke a specific CAP Skill (e.g., `cap:product_search`), the Client Agent **MUST** use a standard A2A RPC method that initiates or sends a message for a task, such as `message/send` or `message/stream` if streaming updates are desired and supported by the Merchant Agent.
 
@@ -338,9 +411,9 @@ CAP extends A2A intent mechanism to supports two primary methods for a Client Ag
     *   The `data` field of this `DataPart` **MUST** be a JSON object representing the structured input parameters for that CAP Skill, as defined in Section 7 (Core Skills Specifications).
 
 2.  **Text-based Skill Invocation (Inferred Intent via `TextPart`):**
-    *   To support more fluid, conversational interactions, an CAP Merchant Agent **MAY** allow Client Agents to submit requests as natural language text, from which the Merchant Agent infers the intended CAP Skill and parameters.
+    *   To support more fluid, conversational interactions, a CAP Merchant Agent **MAY** allow Client Agents to submit requests as natural language text, from which the Merchant Agent infers the intended CAP Skill and parameters.
     *   In this model, the `Message.parts` array **SHOULD** contain a single A2A `TextPart` (Section 6.5.1 of [A2A-SPEC]) holding a natural language request (e.g., `"find me red running shoes under $100"`).
-    *   For this type of invocation, a `DataPart` with an CAP `skillId` in its `metadata` **MAY** be present to hint the Merchant Agent of the primary inferred intent, but it's not mandatory.
+    *   For this type of invocation, a `DataPart` with a CAP `skillId` in its `metadata` **MAY** be present to hint the Merchant Agent of the primary inferred intent, but it's not mandatory.
     *   The Merchant Agent performs the skill routing by interpreting the content of the `TextPart`.
     *   **Support and Scalability:**
         *   Merchant Agents **MAY** opt-out of supporting text-based invocation for some or all of their CAP skills due to the potential computational costs of natural language processing at scale.
@@ -433,8 +506,8 @@ This shows a `Task` object that might be returned by `message/send` or `tasks/ge
             "kind": "data",
             "data": {
               "products": [
-                { "id": "urn:Product:sku:123", "name": "CAP Runner Pro - Blue", "price": 79.99, "currency": "USD" },
-                { "id": "urn:Product:sku:124", "name": "CAP Distance Master - Blue", "price": 99.99, "currency": "USD" }
+                { "id": "123", "name": "CAP Runner Pro - Blue", "price": 79.99, "currency": "USD" },
+                { "id": "124", "name": "CAP Distance Master - Blue", "price": 99.99, "currency": "USD" }
               ],
               "totalResults": 2,
               "offset": 0,
@@ -506,6 +579,94 @@ This section defines the standardized CAP Skills that Merchant Agents can implem
 
 Client Agents **MUST** specify the target CAP Skill by including `{\"skillId\": \"<full_skill_id>\"}` in the `metadata` field of the A2A `Message` object.
 
+### 7.0. Common Types
+
+This section defines common TypeScript interfaces used across multiple CAP skills. These types are defined in the consolidated `types/types.ts` file and referenced throughout the skill specifications.
+
+**Core Product Types:**
+
+```ts
+--8<-- "types/types.ts:ProductAvailability"
+```
+
+```ts
+--8<-- "types/types.ts:ProductOffer"
+```
+
+```ts
+--8<-- "types/types.ts:ProductSummary"
+```
+
+```ts
+--8<-- "types/types.ts:ProductVariant"
+```
+
+```ts
+--8<-- "types/types.ts:ProductReviewSummary"
+```
+
+```ts
+--8<-- "types/types.ts:ShippingOption"
+```
+
+**Cart and Order Types:**
+
+```ts
+--8<-- "types/types.ts:CartTotals"
+```
+
+```ts
+--8<-- "types/types.ts:TaxCalculation"
+```
+
+```ts
+--8<-- "types/types.ts:CartAction"
+```
+
+```ts
+--8<-- "types/types.ts:OrderStatus"
+```
+
+```ts
+--8<-- "types/types.ts:PaymentStatus"
+```
+
+```ts
+--8<-- "types/types.ts:TrackingInfo"
+```
+
+**Address Types:**
+
+```ts
+--8<-- "types/types.ts:ShippingAddress"
+```
+
+```ts
+--8<-- "types/types.ts:BillingAddress"
+```
+
+**User Preference Types:**
+
+```ts
+--8<-- "types/types.ts:UserDataConsent"
+```
+
+```ts
+--8<-- "types/types.ts:LocalePreferences"
+```
+
+```ts
+--8<-- "types/types.ts:ShoppingPreferences"
+```
+
+```ts
+--8<-- "types/types.ts:AccessibilityPreferences"
+```
+
+```ts
+--8<-- "types/types.ts:CommunicationPreferences"
+```
+
 ### 7.1. Product Discovery and Information Skills
 
 #### 7.1.1. `cap:product_search`
@@ -515,80 +676,103 @@ Client Agents **MUST** specify the target CAP Skill by including `{\"skillId\": 
 
 <em>Guidance on query modes and filter expressions is available in Section 5.2.2.</em>
 
+**Input Schema:**
 
-<details class="info">
-  <summary>Input Schema</summary>
+```ts
+--8<-- "types/types.ts:ProductSearchInput"
+```
 
-  ```ts
-  --8<-- "schemas/cap.product_search.input.ts"
-  ```
-</details>
+**Output Schema:**
 
-<details class="info">
-  <summary>Output Schema</summary>
-
-  ```ts
-  --8<-- "schemas/cap.product_search.output.ts"
-  ```
-</details>
+```ts
+--8<-- "types/types.ts:ProductSearchOutput"
+```
 
 #### 7.1.2. `cap:product_get`
 *   **Skill ID:** `cap:product_get`
-*   **Purpose:** Allows a Client Agent to retrieve detailed information for one or more specific products, identified by their canonical CAP Product URNs.
-*   **Input Parameters:** *(Placeholder: To be detailed - typically one or more Product URNs)*
-*   **Result Artifact:** *(Placeholder: To be detailed - typically detailed product information for each URN)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., product_not_found)*
+*   **Purpose:** Allows a Client Agent to retrieve comprehensive product information for one or more specific products, identified by their canonical CAP Product URNs. Returns complete schema.org Product data by default, including offers with availability status.
+*   **Authentication:** **SHOULD** be tagged `auth:public` to allow unauthenticated access to product information.
+*   **Specific Error Conditions:** `CAP_PRODUCT_NOT_FOUND`, `CAP_INVALID_PRODUCT_URN`
+
+**Input Schema:**
+
+```ts
+--8<-- "types/types.ts:ProductGetInput"
+```
+
+**Output Schema:**
+
+```ts
+--8<-- "types/types.ts:ProductGetOutput"
+```
 
 
 
-### 7.2. Inventory Skills
+### 7.2. Cart Management Skills
 
-#### 7.2.1. `cap:inventory_query`
-*   **Skill ID:** `cap:inventory_query`
-*   **Purpose:** Allows a Client Agent to get focused availability and stock information for specific product URNs (and potentially their variants).
-*   **Input Parameters:** *(Placeholder: To be detailed - typically one or more Product URNs and variant identifiers)*
-*   **Result Artifact:** *(Placeholder: To be detailed - typically availability status and quantities)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed)*
-
-### 7.3. Cart Management Skills
-
-#### 7.3.1. `cap:cart_manage`
+#### 7.2.1. `cap:cart_manage`
 *   **Skill ID:** `cap:cart_manage`
-*   **Purpose:** Enables a Client Agent to manage a user's shopping cart, including viewing the cart, adding items, updating quantities, and removing items. This skill will require a sub-action parameter to specify the desired cart operation.
-*   **Input Parameters:** *(Placeholder: To be detailed - including sub-action (view, add, update, remove, clear), item identifiers, quantities, variant specifics)*
-*   **Result Artifact:** *(Placeholder: To be detailed - typically the updated cart state)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., item_not_available, invalid_item_id)*
+*   **Purpose:** Enables a Client Agent to manage a user's shopping cart, including viewing the cart, adding items, updating quantities, and removing items. This skill requires an action parameter to specify the desired cart operation.
+*   **Authentication:** **MUST** require authentication to access and modify user's cart.
+*   **Specific Error Conditions:** `CAP_ITEM_NOT_AVAILABLE`, `CAP_INVALID_ITEM_ID`, `CAP_CART_NOT_FOUND`, `CAP_INSUFFICIENT_INVENTORY`, `CAP_INVALID_QUANTITY`, `CAP_CART_OPERATION_FAILED`
 
-### 7.4. Checkout and Order Management Skills
+**Input Schema:**
 
-#### 7.4.1. `cap:checkout`
-*   **Skill ID:** `cap:checkout`
-*   **Purpose:** Initiates the checkout process for the current cart's contents. For `draft-01`, this involves preparing the order and providing information for hand-off to the merchant's payment system.
-*   **Input Parameters:** *(Placeholder: To be detailed - potentially a cart identifier or session context)*
-*   **Result Artifact:** *(Placeholder: To be detailed - typically an order ID and a redirect URL or instructions for payment hand-off)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., cart_empty, checkout_preconditions_not_met)*
+```ts
+--8<-- "types/types.ts:CartManageInput"
+```
 
-#### 7.4.2. `cap:order_status`
+**Output Schema:**
+
+```ts
+--8<-- "types/types.ts:CartManageOutput"
+```
+
+### 7.3. Order Management Skills
+
+#### 7.3.1. `cap:order_status`
 *   **Skill ID:** `cap:order_status`
 *   **Purpose:** Allows a Client Agent to retrieve the current status of a previously placed order.
-*   **Input Parameters:** *(Placeholder: To be detailed - typically an order ID)*
-*   **Result Artifact:** *(Placeholder: To be detailed - order status, shipping information, estimated delivery)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., order_not_found)*
+*   **Authentication:** **MUST** require authentication to access order information. Orders are only accessible to the customer who placed them.
+*   **Specific Error Conditions:** `CAP_ORDER_NOT_FOUND`, `CAP_ACCESS_DENIED`, `CAP_INVALID_ORDER_ID`
 
-### 7.5. User Context and Preference Skills
+**Input Schema:**
+
+```ts
+--8<-- "types/types.ts:OrderStatusInput"
+```
+
+**Output Schema:**
+
+```ts
+--8<-- "types/types.ts:OrderStatusOutput"
+```
+
+### 7.4. User Context and Preference Skills
 
 This group of skills allows Client Agents to manage user-consented preferences and personalization context with a Merchant Agent, primarily related to the A2A `Task.contextId` mechanism defined in Section 6.4.
 
-#### 7.5.1. `cap:user_preferences_set`
+#### 7.4.1. `cap:user_preferences_set`
 *   **Skill ID:** `cap:user_preferences_set`
 *   **Purpose:** Allows a Client Agent to establish or update user-consented preferences with a Merchant Agent. These preferences are associated by the Merchant Agent with the A2A `Task.contextId` that is returned upon successful establishment, or linked to an existing `contextId` if one is provided by the Client Agent in the `Message.contextId` field for an update. This skill is also used to revoke consent for storing preferences.
-*   **Input Parameters:** *(Placeholder: To be detailed - will include a `preferences` object which contains a `userDataConsent` flag. For updates/revocations, the Client Agent sends the relevant `Message.contextId`.)*
-*   **Result Artifact:** *(Placeholder: To be detailed - typically an acknowledgment. If establishing a new context, the A2A `Task` object in the response will contain the new `contextId`.)*
-*   **Specific Error Conditions:** *(Placeholder: To be detailed, e.g., CAP_USER_CONSENT_REQUIRED, CAP_INVALID_PREFERENCES_FORMAT, CAP_INVALID_CONTEXT_ID_FOR_UPDATE)*
+*   **Authentication:** **MAY** be available for unauthenticated users to establish personalization context. **SHOULD** be tagged `auth:public` if supporting guest personalization.
+*   **Specific Error Conditions:** `CAP_USER_CONSENT_REQUIRED`, `CAP_INVALID_PREFERENCES_FORMAT`, `CAP_INVALID_CONTEXT_ID_FOR_UPDATE`, `CAP_CONSENT_POLICY_NOT_SUPPORTED`
+
+**Input Schema:**
+
+```ts
+--8<-- "types/types.ts:UserPreferencesSetInput"
+```
+
+**Output Schema:**
+
+```ts
+--8<-- "types/types.ts:UserPreferencesSetOutput"
+```
 
 ## 6. Error Handling
 
-When an CAP Skill invocation results in an error, the A2A Task processing the skill **MUST** indicate this failure through the standard A2A mechanisms, primarily by setting the `Task.status.state` to `\"failed\"`.
+When a CAP Skill invocation results in an error, the A2A Task processing the skill **MUST** indicate this failure through the standard A2A mechanisms, primarily by setting the `Task.status.state` to `\"failed\"`.
 
 Further details about the CAP-specific error **MUST** be provided within the `Task.status.message` field (which is an A2A `Message` object). This message **SHOULD** contain a single A2A `DataPart` structured as follows:
 
@@ -608,19 +792,49 @@ Client Agents **SHOULD** inspect the `Task.status.state` first. If it is `\"fail
 
 This section will later enumerate common `capErrorCode` values and their meanings. Standard A2A-level errors (e.g., related to task processing itself, malformed requests to the A2A endpoint) are handled as defined in Section 8 of [A2A-SPEC].
 
-*(Placeholder: Common CAP Error Codes and Meanings to be defined here, e.g.):*
-*   `CAP_PRODUCT_NOT_FOUND`
-*   `CAP_INVALID_PRODUCT_URN`
-*   `CAP_ITEM_OUT_OF_STOCK`
-*   `CAP_CART_OPERATION_FAILED`
-*   `CAP_CHECKOUT_FAILED`
-*   `CAP_ORDER_NOT_FOUND`
-*   `CAP_USER_CONSENT_REQUIRED`
-*   `CAP_INVALID_USER_CONTEXT_TOKEN`
-*   `CAP_AUTHENTICATION_REQUIRED` 
-*   `CAP_AUTHORIZATION_DENIED` 
-*   `CAP_INVALID_PARAMETERS` 
-*   `CAP_RATE_LIMIT_EXCEEDED`
+**Common CAP Error Codes:**
+
+**Product and Search Errors:**
+*   `CAP_PRODUCT_NOT_FOUND` - Requested product(s) do not exist or are not accessible
+*   `CAP_INVALID_PRODUCT_URN` - Product identifier format is invalid or malformed
+*   `CAP_SEARCH_FAILED` - Product search operation failed due to system error
+*   `CAP_SEARCH_QUERY_TOO_BROAD` - Search query returned too many results; refinement needed
+*   `CAP_SEARCH_QUERY_INVALID` - Search query contains invalid syntax or unsupported operators
+
+**Inventory and Availability Errors:**
+*   `CAP_ITEM_OUT_OF_STOCK` - Requested item is currently out of stock
+*   `CAP_INSUFFICIENT_INVENTORY` - Not enough inventory to fulfill the requested quantity
+
+**Cart Management Errors:**
+*   `CAP_CART_NOT_FOUND` - Specified cart does not exist or has expired
+*   `CAP_CART_OPERATION_FAILED` - Cart operation failed due to system error
+*   `CAP_INVALID_ITEM_ID` - Item identifier is invalid or malformed
+*   `CAP_INVALID_QUANTITY` - Quantity value is invalid (negative, zero when not allowed, exceeds limits)
+*   `CAP_CART_EXPIRED` - Cart has expired and is no longer accessible
+*   `CAP_CART_ITEM_NOT_FOUND` - Specified cart item does not exist in the cart
+
+**Order Errors:**
+*   `CAP_ORDER_NOT_FOUND` - Requested order does not exist or is not accessible
+
+**User Preferences and Context Errors:**
+*   `CAP_USER_CONSENT_REQUIRED` - User consent is required for the requested operation
+*   `CAP_INVALID_PREFERENCES_FORMAT` - User preferences data format is invalid
+*   `CAP_INVALID_CONTEXT_ID_FOR_UPDATE` - Context ID is invalid or has expired
+*   `CAP_CONSENT_POLICY_NOT_SUPPORTED` - Specified consent policy is not supported by the merchant
+
+**Authentication and Authorization Errors:**
+*   `CAP_AUTHENTICATION_REQUIRED` - Authentication is required for this operation
+*   `CAP_AUTHORIZATION_DENIED` - User is not authorized to perform this operation
+*   `CAP_ACCESS_DENIED` - Access to the requested resource is denied
+*   `CAP_SESSION_EXPIRED` - User session has expired and re-authentication is required
+
+**General System Errors:**
+*   `CAP_INVALID_PARAMETERS` - Request parameters are invalid or malformed
+*   `CAP_RATE_LIMIT_EXCEEDED` - Rate limit has been exceeded; client should retry later
+*   `CAP_SERVICE_UNAVAILABLE` - Service is temporarily unavailable
+*   `CAP_INTERNAL_ERROR` - An internal system error occurred
+*   `CAP_FEATURE_NOT_SUPPORTED` - Requested feature is not supported by this merchant
+*   `CAP_REQUEST_TOO_LARGE` - Request payload exceeds maximum allowed size
 
 ## 7. User Data Privacy and Consent Guidelines
 
@@ -696,10 +910,10 @@ While many CAP skills involve sensitive operations or user data and thus require
 
 To accommodate this, CAP defines the following convention:
 
-*   An CAP Skill **MAY** be designated as publicly accessible if it includes the tag `auth:public` within the `tags` array of its skill definition in the Merchant Agent's A2A AgentCard.
-*   Merchant Agents **SHOULD** accept and process requests invoking an CAP Skill tagged `auth:public` without requiring an `Authorization` header or other forms of client authentication.
-*   If an CAP Skill is **NOT** tagged with `auth:public`, or if the tag is absent, it **MUST** require authentication. In such cases, Merchant Agents **MUST** enforce the authentication requirements declared in their A2A AgentCard, as per standard A2A protocol behavior, and **MUST** reject unauthenticated or improperly authenticated requests accordingly.
-*   Client Agents, before attempting an unauthenticated request to an CAP Skill, **SHOULD** inspect the skill's definition in the Merchant Agent's AgentCard to check for the presence of the `auth:public` tag.
+*   a CAP Skill **MAY** be designated as publicly accessible if it includes the tag `auth:public` within the `tags` array of its skill definition in the Merchant Agent's A2A AgentCard.
+*   Merchant Agents **SHOULD** accept and process requests invoking a CAP Skill tagged `auth:public` without requiring an `Authorization` header or other forms of client authentication.
+*   If a CAP Skill is **NOT** tagged with `auth:public`, or if the tag is absent, it **MUST** require authentication. In such cases, Merchant Agents **MUST** enforce the authentication requirements declared in their A2A AgentCard, as per standard A2A protocol behavior, and **MUST** reject unauthenticated or improperly authenticated requests accordingly.
+*   Client Agents, before attempting an unauthenticated request to a CAP Skill, **SHOULD** inspect the skill's definition in the Merchant Agent's AgentCard to check for the presence of the `auth:public` tag.
 
 Even for skills marked `auth:public`, Merchant Agents **SHOULD** implement appropriate measures to protect against abuse, such as rate limiting and traffic analysis.
 
@@ -729,13 +943,120 @@ To ensure service stability and fair usage, and to protect against denial-of-ser
 Merchant Agents are also responsible for other general abuse protection mechanisms appropriate for public-facing APIs.
 
 ### 8.2. Authorization
-*(Placeholder: Details on authorization policies once a client is authenticated will be added here. This will cover how Merchant Agents determine if an authenticated client has permission to invoke a specific skill or access certain resources.)*
+
+Once a Client Agent is authenticated, Merchant Agents **MUST** implement appropriate authorization controls to ensure that clients can only access resources and perform operations they are permitted to access.
+
+#### 8.2.1. Skill-Level Authorization
+
+*   **Public Skills:** Skills tagged with `auth:public` in the Merchant Agent's AgentCard **SHOULD** be accessible without authorization requirements.
+*   **Authenticated Skills:** Skills requiring authentication **MUST** implement authorization checks based on the authenticated client's identity and permissions.
+*   **User Context Isolation:** Client Agents **MUST** only access user-specific resources (carts, orders, preferences) for the authenticated user associated with their access token.
+
+#### 8.2.2. Resource Access Control
+
+*   **Cart Access:** Client Agents **MUST** only access carts belonging to the authenticated user. Cart identifiers **SHOULD** be scoped to the user context.
+*   **Order Access:** Order information **MUST** only be accessible to the customer who placed the order or authorized representatives.
+*   **User Preferences:** Preference data **MUST** only be accessible and modifiable within the established context (via `contextId`) or authenticated user session.
+
+#### 8.2.3. Scope-Based Authorization
+
+Merchant Agents **MAY** implement scope-based authorization where different Client Agents or access tokens have different permission levels:
+
+*   **Read-only access:** Permits product browsing and search but not cart or order operations
+*   **Cart management:** Allows cart operations but not order placement
+*   **Full e-commerce:** Complete access to all CAP operations
+*   **Admin access:** Extended permissions for merchant partners or specialized integrations
+
+#### 8.2.4. Authorization Failure Handling
+
+When authorization fails, Merchant Agents **MUST**:
+*   Return an appropriate CAP error code (`CAP_AUTHORIZATION_DENIED` or `CAP_ACCESS_DENIED`)
+*   **NOT** reveal information about the existence of resources the client is not authorized to access
+*   Log authorization failures for security monitoring
 
 ### 8.3. Data Validation and Input Sanitization
-*(Placeholder: Guidelines for validating and sanitizing data in requests and responses to prevent common vulnerabilities like injection attacks will be added here.)*
+
+Merchant Agents **MUST** implement comprehensive input validation and sanitization to protect against injection attacks and ensure data integrity.
+
+#### 8.3.1. Input Validation Requirements
+
+*   **Schema Validation:** All CAP skill inputs **MUST** be validated against their defined TypeScript schemas before processing.
+*   **Data Type Validation:** Enforce strict data typing for all input parameters (strings, numbers, booleans, arrays, objects).
+*   **Length Limits:** Implement reasonable length limits for string inputs to prevent buffer overflow and DoS attacks.
+*   **Range Validation:** Validate numeric inputs are within acceptable ranges (e.g., positive quantities, valid pagination offsets).
+
+#### 8.3.2. String Input Sanitization
+
+*   **Product Identifier Validation:** Validate that product identifiers are non-empty strings and conform to the merchant's expected format
+*   **Search Query Sanitization:** Sanitize search queries to prevent injection attacks while preserving search functionality
+*   **Filter Expression Validation:** When supporting SQL-like filter expressions, use parameterized queries or whitelist-based validation
+*   **Address Validation:** Validate shipping and billing addresses for proper formatting and realistic values
+
+#### 8.3.3. Injection Attack Prevention
+
+*   **SQL Injection:** Use parameterized queries or ORM frameworks that prevent SQL injection
+*   **NoSQL Injection:** Validate and sanitize inputs for NoSQL databases
+*   **Command Injection:** Never execute system commands based on user input
+*   **Script Injection:** Sanitize any user-provided content that might be rendered in web interfaces
+
+#### 8.3.4. Output Sanitization
+
+*   **Response Data:** Ensure all response data is properly escaped when returned to prevent client-side injection
+*   **Error Messages:** Sanitize error messages to prevent information disclosure while maintaining usefulness
+*   **URL Generation:** Validate and sanitize any URLs included in responses (redirect URLs, product URLs, etc.)
+
+#### 8.3.5. File Upload Security (Future Extensions)
+
+For future CAP extensions that might support file uploads:
+*   Validate file types and sizes
+*   Scan uploaded files for malware
+*   Store uploaded files in secure, isolated storage
+*   Never execute uploaded files
 
 ### 8.4. Protection Against Common Web Vulnerabilities
-*(Placeholder: Recommendations for protecting against common web vulnerabilities (e.g., XSS, CSRF if applicable in any supporting web interfaces) will be added here.)*
+
+While CAP primarily operates as an API protocol, Merchant Agents **SHOULD** implement protections against common web vulnerabilities, especially if they provide web interfaces for payment completion or order management.
+
+#### 8.4.1. Cross-Site Scripting (XSS) Prevention
+
+*   **Output Encoding:** Encode all dynamic content in web responses using context-appropriate encoding
+*   **Content Security Policy (CSP):** Implement strict CSP headers to prevent unauthorized script execution
+*   **Input Sanitization:** Sanitize any user inputs that might be displayed in web interfaces
+*   **Safe HTML Generation:** Use templating engines that automatically escape content
+
+#### 8.4.2. Cross-Site Request Forgery (CSRF) Protection
+
+*   **CSRF Tokens:** Implement CSRF tokens for any state-changing operations accessed via web interfaces
+*   **SameSite Cookies:** Use SameSite cookie attributes to prevent cross-site cookie usage
+*   **Origin Validation:** Validate the Origin and Referer headers for sensitive operations
+*   **Double-Submit Cookies:** Consider double-submit cookie patterns for additional CSRF protection
+
+#### 8.4.3. Clickjacking Prevention
+
+*   **X-Frame-Options:** Set appropriate X-Frame-Options headers to prevent framing
+*   **Content Security Policy:** Use CSP frame-ancestors directive to control where pages can be embedded
+*   **Frame-Busting Scripts:** Implement client-side frame-busting code when appropriate
+
+#### 8.4.4. Information Disclosure Prevention
+
+*   **Error Handling:** Provide generic error messages to external clients while logging detailed errors internally
+*   **HTTP Headers:** Remove or obfuscate server version information and other revealing headers
+*   **Debug Information:** Ensure debug information is not exposed in production environments
+*   **Directory Traversal:** Prevent path traversal attacks in any file serving functionality
+
+#### 8.4.5. Session Security
+
+*   **Secure Cookies:** Use Secure and HttpOnly flags for session cookies
+*   **Session Timeout:** Implement appropriate session timeout policies
+*   **Session Regeneration:** Regenerate session IDs after authentication and privilege changes
+*   **Concurrent Sessions:** Consider implementing limits on concurrent sessions per user
+
+#### 8.4.6. Transport Security
+
+*   **HTTPS Enforcement:** Enforce HTTPS for all CAP endpoints and redirect HTTP to HTTPS
+*   **HSTS Headers:** Implement HTTP Strict Transport Security headers
+*   **Certificate Validation:** Ensure proper SSL/TLS certificate validation and management
+*   **Cipher Suites:** Use strong cipher suites and disable weak encryption protocols
 
 ## 9. Extensibility
 
@@ -781,8 +1102,311 @@ To ensure baseline interoperability:
 
 Organizations interested in contributing to the CAP standard, particularly by proposing extensions for general use cases or developing new profiles for specific verticals, are encouraged to reach out to the specification editors or participate in the designated community forums (details for which will be provided as the governance model for CAP is formalized).
 
-## 10. Future Work
-*(Placeholder for extensions, payment flows, advanced features, and skill versioning strategies.)*
+## 10. Usage Examples
+
+This section provides practical examples demonstrating how to use CAP skills in real-world scenarios.
+
+### 10.1. Complete E-commerce Flow Example
+
+This example demonstrates a complete shopping flow using multiple CAP skills:
+
+**Step 1: Product Search**
+
+```json
+// A2A Message for product search
+{
+  "role": "user",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:product_search" },
+      "data": {
+        "query": "wireless headphones",
+        "queryMode": "keyword",
+        "filter": "price < 200 AND brand IN ('Sony', 'Bose')",
+        "limit": 10
+      }
+    }
+  ]
+}
+```
+
+**Step 2: Get Product Details**
+
+```json
+// Get detailed information for selected products
+{
+  "role": "user",
+  "contextId": "merchant_context_abc123",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:product_get" },
+      "data": {
+        "productIds": ["SONY-WH1000XM4", "BOSE-QC45"]
+      }
+    }
+  ]
+}
+```
+
+**Step 3: Add to Cart**
+
+```json
+// Add selected product to cart
+{
+  "role": "user",
+  "contextId": "merchant_context_abc123",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:cart_manage" },
+      "data": {
+        "action": "add",
+        "addItems": [
+          {
+            "productId": "SONY-WH1000XM4",
+            "variantAttributes": { "color": "Black" },
+            "quantity": 1
+          }
+        ],
+        "includeShippingOptions": true
+      }
+    }
+  ]
+}
+```
+
+**Step 4: View Cart**
+
+```json
+// View current cart contents
+{
+  "role": "user",
+  "contextId": "merchant_context_abc123",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:cart_manage" },
+      "data": {
+        "action": "view",
+        "includeShippingOptions": true,
+        "includeTaxCalculations": true
+      }
+    }
+  ]
+}
+```
+
+### 10.2. User Preferences Setup Example
+
+Establishing user preferences for personalized shopping:
+
+```json
+{
+  "role": "user",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:user_preferences_set" },
+      "data": {
+        "preferences": {
+          "userDataConsent": "all",
+          "locale": {
+            "language": "en-US",
+            "country": "US",
+            "currency": "USD",
+            "timezone": "America/New_York"
+          },
+          "shopping": {
+            "categories": ["electronics", "books", "home_garden"],
+            "priceRange": { "max": 500, "currency": "USD" },
+            "brands": ["Apple", "Sony", "Samsung"]
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+### 10.3. Standard Offers Usage Example
+
+Example showing products with Standard Offers in search results and detailed product information:
+
+**Product Search Response with Standard Offers:**
+
+```json
+{
+  "id": "task-456",
+  "status": {
+    "state": "completed"
+  },
+  "artifacts": [
+    {
+      "artifactId": "search-results-002",
+      "parts": [
+        {
+          "kind": "data",
+          "data": {
+            "products": [
+              {
+                "id": "WIDGET-2024",
+                "name": "Premium Widget 2024",
+                "description": "Latest model with advanced features",
+                "image": "https://example.com/widget-2024.jpg",
+                "offers": [
+                  {
+                    "identifier": "offer-widget-bogo",
+                    "price": "99.99",
+                    "priceCurrency": "USD",
+                    "availability": "inStock",
+                    "additionalType": "urn:cap:StandardOffer:BOGO50",
+                    "description": "Buy one, get one 50% off with code BOGO50"
+                  }
+                ]
+              },
+              {
+                "id": "GADGET-PRO",
+                "name": "Professional Gadget",
+                "description": "Industrial-grade gadget for professionals",
+                "offers": [
+                  {
+                    "identifier": "offer-gadget-bulk",
+                    "price": "149.99",
+                    "priceCurrency": "USD",
+                    "availability": "inStock",
+                    "additionalType": "urn:cap:StandardOffer:BTGOF",
+                    "description": "Buy two, get one free - Perfect for teams"
+                  }
+                ]
+              }
+            ],
+            "totalResults": 2,
+            "offset": 0,
+            "limit": 10
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Product Details Response with Multiple Standard Offers:**
+
+```json
+{
+  "products": [
+    {
+      "id": "WIDGET-2024",
+      "name": "Premium Widget 2024",
+      "description": "Latest model with advanced features and premium materials",
+      "images": [
+        "https://example.com/widget-2024-main.jpg",
+        "https://example.com/widget-2024-side.jpg"
+      ],
+      "offers": [
+        {
+          "identifier": "offer-regular",
+          "price": "99.99",
+          "priceCurrency": "USD",
+          "availability": "inStock"
+        },
+        {
+          "identifier": "offer-bogo",
+          "price": "99.99",
+          "priceCurrency": "USD",
+          "availability": "inStock",
+          "additionalType": "urn:cap:StandardOffer:BOGO50",
+          "description": "Buy one, get one 50% off with code BOGO50"
+        },
+        {
+          "identifier": "offer-bulk",
+          "price": "89.99",
+          "priceCurrency": "USD",
+          "availability": "inStock",
+          "additionalType": "urn:cap:StandardOffer:PCT10",
+          "description": "10% off when you buy 3 or more"
+        }
+      ],
+      "brand": "TechCorp",
+      "category": "Electronics"
+    }
+  ]
+}
+```
+
+### 10.4. Error Handling Example
+
+Example of handling a product not found error:
+
+```json
+// CAP Error Response
+{
+  "id": "task-123",
+  "status": {
+    "state": "failed",
+    "message": {
+      "role": "agent",
+      "parts": [
+        {
+          "kind": "data",
+          "data": {
+            "capErrorCode": "CAP_PRODUCT_NOT_FOUND",
+            "description": "The requested product 'INVALID123' was not found",
+            "details": {
+              "productId": "INVALID123",
+              "suggestions": ["SIMILAR456"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### 10.5. Text-based Interaction Example
+
+Natural language product search:
+
+```json
+{
+  "role": "user",
+  "contextId": "merchant_context_abc123",
+  "parts": [
+    {
+      "kind": "text",
+      "text": "I'm looking for a good coffee maker under $100 that can make espresso"
+    }
+  ]
+}
+```
+
+### 10.6. Product Information with Field Selection Example
+
+Getting specific product fields (availability included automatically in offers):
+
+```json
+{
+  "role": "user",
+  "contextId": "merchant_context_abc123",
+  "parts": [
+    {
+      "kind": "data",
+      "metadata": { "skillId": "cap:product_get" },
+      "data": {
+        "productIds": [
+          "COFFEE-MAKER-123",
+          "COFFEE-BEANS-456"
+        ],
+        "fields": ["name", "brand", "offers"]
+      }
+    }
+  ]
+}
+```
 
 ## 11. References
 - **[A2A-SPEC]** Google, "Agent2Agent (A2A) Protocol Specification", Version 0.2.6 (or latest). URL: [https://a2a-protocol.org/latest/specification/](https://a2a-protocol.org/latest/specification/)
