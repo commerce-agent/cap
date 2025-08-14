@@ -237,3 +237,10 @@
     }
   } */
 }
+
+/* Automatic section numbering styling */
+.enumerate-headings-plugin {
+  opacity: 0.7;
+  margin-right: 0.5em;
+  font-weight: 500;
+}

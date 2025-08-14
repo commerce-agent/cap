@@ -105,6 +105,8 @@ markdown_extensions:
 # Plugins
 plugins:
   - search
+  - add-number:
+      order: 2
   # - redirects: # Uncomment and configure if you need redirects later
   #     redirect_maps:
   #       old-page.md: new-page.md 
