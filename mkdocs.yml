@@ -10,6 +10,7 @@ site_dir: site
 # Navigation
 nav:
   - Home: index.md
+  - Overview: overview.md
   - Topics:
     - "Why CAP Leverages A2A": topics/why-a2a.md
     - "FAQ for Merchant Agents": topics/faq-merchants.md
